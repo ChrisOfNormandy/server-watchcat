@@ -1,0 +1,21 @@
+.modal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  background-color: white;
+
+  padding: 12px;
+  border-radius: 10px;
+
+  resize: both;
+  overflow: auto;
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}

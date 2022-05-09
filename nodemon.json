@@ -1,0 +1,11 @@
+{
+    "ignore": [
+        "*.md",
+        "*.json",
+        "watchcat/*",
+        "bot/*"
+    ],
+    "watch": [
+        "*.js"
+    ]
+}

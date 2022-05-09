@@ -1,0 +1,11 @@
+[Unit]
+Description=Server Watchcat Web Interface
+
+[Service]
+Environment=NODE_PORT=8001
+Type=simple
+User=ubuntu
+ExecStart=/usr/bin/node /home/ubuntu/server-watchcat/bot/bot.js
+
+[Install]
+WantedBy=multi-user.target

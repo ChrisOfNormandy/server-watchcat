@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+
+    <style>
+        html, body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            width: 100%;
+            height: 100%;
+
+            background-color: rgb(50, 50, 50);
+        }
+    </style>
+    <style>
+        .input-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            align-items: center;
+            white-space: nowrap;
+            width: 100%;
+            padding: 5px;
+        }
+
+        .input-label {
+            display: flex;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .input-label:first-child {
+            margin-right: 10px;
+        }
+
+        .input-label:last-child {
+            margin-left: 10px;
+        }
+
+        .input {
+            display: flex;
+            width: 100%;
+            background-color: rgb(50, 50, 50);
+            padding: 5px;
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .input[type='text'] {
+            min-width: 200px;
+        }
+
+        .input-label:first-child {
+            margin-right: 10px;
+        }
+
+        .input-label:last-child {
+            margin-left: 10px;
+        }
+    </style>
+    <style>
+        .btn.primary {
+            background-color: rgb(50, 50, 50);
+            color: white;
+
+            white-space: nowrap;
+
+            padding: 4px 8px;
+
+            border-radius: 10px;
+            border: 1px solid white;
+        }
+
+        .btn:hover {
+            cursor: pointer;
+        }
+
+        .btn.primary:hover {
+            background-color: rgb(100, 100, 100);
+            box-shadow: 2px 2px 2px white;
+        }
+    </style>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            border: 1px solid black;
+            background-color: rgb(30, 30, 30);
+            color: white;
+            width: fit-content;
+            border-radius: 10px;
+        }
+
+        .status {
+            text-align: center;
+            color: red;
+        }
+    </style>
+
+    <title>Server Watchcat | Login</title>
+</head>
+
+<body>
+    <form action="/login" method="post" class="container">
+        <div class="input-row">
+            <label class="input-label">Username</label>
+            <input type="text" name="username" class="input" pattern="[\w\s]+#\d{4}" placeholder="Username#1234" />
+        </div>
+
+        <div class="input-row">
+            <label class="input-label">Pin</label>
+            <input type="password" name="pin" class="input" pattern="\d{8}" placeholder="8 digit pin" required
+                autocomplete="username" />
+        </div>
+
+        <div class="input-row">
+            <label class="input-label">2FA Token</label>
+            <input type="text" name="token" class="input" pattern="\d{6}" placeholder="2FA Token" required
+                autocomplete="current-password" />
+        </div>
+
+        <button type="submit" class="btn primary">
+            Log In
+        </button>
+    </form>
+
+    <div id="status" class="status"></div>
+
+    <script type="text/javascript">
+        console.log('Welcome.');
+
+        const statusElem = document.getElementById('status')
+
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const params = Object.fromEntries(urlSearchParams.entries());
+
+        switch (params.status) {
+            case 'account-not-found': {
+                statusElem.innerHTML = '<span>Failed to find account.\nLog into Discord and run the command <b>~login</b> to create one!</span>';
+                break;
+            }
+            case 'invalid': {
+                statusElem.innerHTML = '<span>Invalid login.</span>';
+                break;
+            }
+            case 'invalid-token': {
+                statusElem.innerHTML = '<span>Invalid token.</span>';
+                break;
+            }
+            case 'bot-failure': {
+                statusElem.innerHTML = '<span>Failed to find user. Is the bot offline?</span>';
+                break;
+            }
+            case 'cache-failure': {
+                statusElem.innerHTML = '<span>Failed to save Discord ID.</span>';
+                break;
+            }
+            case 'discord': {
+                statusElem.innerHTML = '<span>Failed to find cached Discord user.\nType anything into a channel the bot is in to fix.</span>';
+                break;
+            }
+            case 'complete': {
+                statusElem.innerHTML = '<span>Registration complete! You can now log in.</span>';
+                break;
+            }
+            case 'failed-to-validate': {
+                statusElem.innerHTML = '<span>Invalid login.</span>';
+                break;
+            }
+        }
+    </script>
+</body>
+
+</html>

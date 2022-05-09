@@ -1,0 +1,14 @@
+.view {
+  display: flex;
+  flex-direction: row;
+
+  border: 1px solid white;
+  padding: 12px;
+
+  resize: both;
+  overflow: auto;
+}
+
+.editor-container {
+  max-height: 500px;
+}

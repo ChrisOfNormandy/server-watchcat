@@ -1,0 +1,75 @@
+.file-manager-container {
+  border: 1px solid white;
+  padding: 12px;
+
+  overflow: auto;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+
+  list-style: none;
+
+  padding: 6px;
+  background-color: white;
+
+  overflow: auto;
+}
+
+.file-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: rgb(50, 50, 50);
+  color: white;
+  padding: 0 12px;
+}
+
+.file-name {
+  white-space: nowrap;
+  width: 100%;
+  padding: 5px;
+}
+
+.file-name.file:hover {
+  cursor: pointer;
+  background-color: rgb(75, 75, 75);
+  color: white;
+}
+
+.file-name.folder:hover {
+  cursor: pointer;
+  background-color: rgb(150, 150, 150);
+  color: black;
+}
+
+.file-row-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+
+  margin-left: 12px;
+}
+
+.file-manager-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  background-color: rgb(100, 100, 100);
+  color: white;
+
+  padding: 6px 12px;
+}
+
+.file-manager-breadcrumb {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.breadcrumb {
+  padding: 0 8px;
+}

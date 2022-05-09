@@ -1,0 +1,39 @@
+{
+    "name": "server-watchcat",
+    "version": "1.0.0",
+    "description": "Server Utility",
+    "main": "index.js",
+    "author": "ChrisOfNormandy",
+    "dependencies": {
+        "@chrisofnormandy/mariwoah-bot": "^0.1.5",
+        "axios": "^0.26.1",
+        "bootstrap-icons": "^1.8.1",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "discord.js": "^13.6.0",
+        "dotenv": "^16.0.0",
+        "express": "^4.17.3",
+        "multer": "^1.4.4",
+        "otpauth": "^7.1.0",
+        "qr-image": "^3.2.0",
+        "react-toastify": "^8.2.0",
+        "react-tooltip": "^4.2.21",
+        "socket.io": "^4.4.1",
+        "speakeasy": "^2.0.0"
+    },
+    "scripts": {
+        "start": "nodemon --trace-warnings index.js ",
+        "runBot": "cd bot && yarn start",
+        "build": "cd watchcat && yarn build",
+        "dev": "cd watchcat && yarn start",
+        "zip": "zip -r export.zip export",
+        "clearExport": "rm -r export && mkdir export && rm export.zip",
+        "exportBuild": "cp -r watchcat/build export",
+        "exportServer": "cp -r src export && cp index.js export && cp package.json export && cp .env export && cp env.js export",
+        "exportBot": "cp -r bot export",
+        "export": "yarn exportBuild && yarn exportServer && yarn exportBot && yarn zip"
+    },
+    "repository": {},
+    "private": true,
+    "license": "GNU General Public License (GPL)"
+}

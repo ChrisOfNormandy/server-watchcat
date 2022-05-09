@@ -1,0 +1,22 @@
+{
+    "name": "server-watchcat-bot",
+    "version": "1.0.0",
+    "description": "Watchcat Bot",
+    "main": "bot.js",
+    "author": "ChrisOfNormandy",
+    "dependencies": {
+        "@chrisofnormandy/mariwoah-bot": "^0.1.5",
+        "axios": "^0.26.1",
+        "cors": "^2.8.5",
+        "discord.js": "^13.6.0",
+        "dotenv": "^16.0.0",
+        "express": "^4.17.3",
+        "qr-image": "^3.2.0"
+    },
+    "scripts": {
+        "start": "nodemon bot.js"
+    },
+    "repository": {},
+    "private": true,
+    "license": "GNU General Public License (GPL)"
+}

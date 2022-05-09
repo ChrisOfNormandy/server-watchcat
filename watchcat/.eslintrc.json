@@ -1,0 +1,92 @@
+{
+    "root": true,
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended"
+    ],
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": 11,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react"
+    ],
+    "rules": {
+        "class-methods-use-this": "error",
+        "computed-property-spacing": "warn",
+        "default-case": "warn",
+        "jsx-quotes": [
+            1,
+            "prefer-single"
+        ],
+        "react/prop-types": "off",
+        "no-compare-neg-zero": "error",
+        "no-const-assign": "error",
+        "no-dupe-args": "error",
+        "no-dupe-keys": "error",
+        "no-duplicate-case": "error",
+        "no-duplicate-imports": "warn",
+        "no-empty-character-class": "warn",
+        "no-extra-bind": "warn",
+        "no-extra-parens": "warn",
+        "no-extra-semi": "warn",
+        "no-floating-decimal": "warn",
+        "no-implied-eval": "error",
+        "no-func-assign": "error",
+        "no-invalid-regexp": "warn",
+        "no-invalid-this": "error",
+        "no-lonely-if": "warn",
+        "no-loop-func": "warn",
+        "no-multiple-empty-lines": "warn",
+        "no-multi-spaces": "warn",
+        "no-proto": "warn",
+        "no-return-assign": "error",
+        "no-self-assign": "error",
+        "no-tabs": "warn",
+        "no-unreachable": "error",
+        "no-useless-escape": "warn",
+        "no-useless-rename": "warn",
+        "no-useless-constructor": "warn",
+        "one-var-declaration-per-line": "warn",
+        "prefer-arrow-callback": "warn",
+        "prefer-spread": "warn",
+        "require-jsdoc": "warn",
+        "switch-colon-spacing": "warn",
+        "use-isnan": "error",
+        "vars-on-top": "warn",
+        "arrow-parens": "warn",
+        "arrow-spacing": "warn",
+        "comma-spacing": "warn",
+        "eqeqeq": "warn",
+        "newline-before-return": "warn",
+        "prefer-promise-reject-errors": "warn",
+        "no-else-return": "error",
+        "no-eval": "error",
+        "no-extra-boolean-cast": "warn",
+        "no-mixed-spaces-and-tabs": "warn",
+        "no-param-reassign": "error",
+        "no-trailing-spaces": "warn",
+        "no-this-before-super": "error",
+        "no-unused-vars": "error",
+        "no-var": "error",
+        "no-useless-return": "error",
+        "multiline-ternary": "warn",
+        "quotes": [
+            "warn",
+            "single"
+        ],
+        "semi": "warn",
+        "react/no-children-prop": "off"
+    }
+}

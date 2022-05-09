@@ -1,0 +1,11 @@
+[Unit]
+Description=Server Watchcat Web Interface
+
+[Service]
+Environment=NODE_PORT=8000
+Type=simple
+User=ubuntu
+ExecStart=/usr/bin/node /home/ubuntu/server-watchcat/index.js
+
+[Install]
+WantedBy=multi-user.target

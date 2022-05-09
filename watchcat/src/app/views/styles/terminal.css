@@ -1,0 +1,43 @@
+.console-container {
+  border: 1px solid white;
+  padding: 12px;
+}
+
+.terminal-container {
+  width: 800px;
+  height: 500px;
+
+  resize: both;
+
+  overflow: auto;
+
+  padding: 6px;
+
+  border: 1px solid white;
+  background-color: black;
+  color: white;
+
+  white-space: nowrap;
+}
+
+.terminal-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 8px;
+}
+
+.terminal-input-row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.terminal-input {
+  width: 100%;
+  padding: 5px;
+  background-color: rgb(50, 50, 50);
+  color: white;
+}
