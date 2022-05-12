@@ -1,6 +1,8 @@
 .view {
   display: flex;
   flex-direction: row;
+  justify-content: center;
+  align-items: center;
 
   border: 1px solid white;
   padding: 12px;

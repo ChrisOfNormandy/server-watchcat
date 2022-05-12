@@ -6,6 +6,11 @@ import toasts from '../../helpers/toasts';
 
 import './styles/control-panel.css';
 
+/**
+ *
+ * @param {*} param0
+ * @returns
+ */
 export default function ControlPanel({ connect }) {
 
     const start = (e) => {

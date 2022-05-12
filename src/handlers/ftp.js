@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const JSZip = require('jszip');
 const { minecraftPath } = require('../../env');
 const logging = require('../logging/logging');
 
@@ -57,9 +58,9 @@ module.exports = {
         }
     },
     /**
-     * 
-     * @param {import('express').Request} req 
-     * @param {import('express').Response} res 
+     *
+     * @param {import('express').Request} req
+     * @param {import('express').Response} res
      */
     run(req, res) {
         const { action, dir } = req.params;
@@ -153,6 +154,86 @@ module.exports = {
                     res.sendFile(p);
                     break;
                 }
+            }
+            case 'zip': {
+                if (!fs.existsSync(p) || path.extname(p)) {
+                    logging.debug('Folder not found or path is not a folder:', p);
+                    res.send(new Error('Folder not found or path is not a folder.'));
+                    break;
+                }
+                else {
+                    logging.debug('Zipping:', p);
+
+                    const zip = new JSZip();
+
+                    const recur = (root, p) => {
+                        logging.debug('Stepping into:', root);
+
+                        const step = (file) => root + '/' + file;
+                        const relPath = (file) => p + '/' + file;
+
+                        const iterate = (file) => {
+                            if (fs.lstatSync(step(file)).isDirectory())
+                                return recur(step(file), relPath(file));
+
+                            logging.debug('Adding file:', step(file));
+
+                            return new Promise((resolve, reject) => {
+                                fs.readFile(step(file), (err, data) => {
+                                    if (err)
+                                        reject(err);
+                                    else {
+                                        zip.file(relPath(file), data);
+                                        resolve(true);
+                                    }
+                                });
+                            });
+                        };
+
+                        return new Promise((resolve, reject) => {
+                            fs.readdir(root, (err, files) => {
+                                if (err)
+                                    reject(err);
+                                else if (files.length) {
+                                    Promise.all(files.map(iterate))
+                                        .then(() => resolve(zip))
+                                        .catch(reject);
+                                }
+                                else
+                                    resolve(zip);
+                            });
+                        });
+                    };
+
+                    const archive = p.split('/').slice(-1);
+
+                    recur(p, archive)
+                        .then((zip) => {
+                            zip.generateAsync({ type: 'nodebuffer' })
+                                .then((buffer) => {
+                                    logging.debug('Zipped:', buffer);
+
+                                    res.setHeader('Content-Type', 'application/zip');
+                                    res.setHeader('Content-Disposition', `attachment; filename=${archive}.zip`);
+                                    res.write(buffer, 'binary');
+                                    res.end(undefined, 'binary');
+                                })
+                                .catch((err) => {
+                                    logging.error(err);
+                                    res.send(err);
+                                });
+                        })
+                        .catch((err) => {
+                            logging.error(err);
+                            res.send(err);
+                        });
+                    //
+                    break;
+                }
+            }
+            default: {
+                res.send(null);
+                break;
             }
         }
     }

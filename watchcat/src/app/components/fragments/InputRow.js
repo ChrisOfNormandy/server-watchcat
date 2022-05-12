@@ -2,6 +2,11 @@
 
 import React from 'react';
 
+/**
+ *
+ * @param {*} param0
+ * @returns
+ */
 export default function InputRow({ label, value, readOnly, defaultIndex, hint }) {
 
     if (!label && !value)
@@ -15,7 +20,7 @@ export default function InputRow({ label, value, readOnly, defaultIndex, hint })
                         type='checkbox'
                         name='%IGNORE%'
                         className='input'
-                        defaultChecked={value === 'true' || (typeof value === 'boolean' && value)}
+                        defaultChecked={value === 'true' || value === true}
                         readOnly={readOnly}
                         onChange={
                             (e) => {
@@ -28,7 +33,7 @@ export default function InputRow({ label, value, readOnly, defaultIndex, hint })
                         name={label}
                         id={'field_' + label}
                         value={
-                            value === 'true' || (typeof value === 'boolean' && value)
+                            value === 'true' || typeof value === 'boolean' && value
                                 ? 'true'
                                 : 'false'
                         }
@@ -36,7 +41,7 @@ export default function InputRow({ label, value, readOnly, defaultIndex, hint })
                 </>
             );
 
-        if (typeof value === 'number' || (!isNaN(value) && value !== ''))
+        if (typeof value === 'number' || !isNaN(value) && value !== '')
             return (
                 <input
                     type='number'
@@ -59,14 +64,14 @@ export default function InputRow({ label, value, readOnly, defaultIndex, hint })
                     defaultValue={str[defaultIndex]}
                 >
                     {
-                        str.map((s, i) => (
+                        str.map((s, i) =>
                             <option
                                 key={i}
                                 value={s}
                             >
                                 {s}
                             </option>
-                        ))
+                        )
                     }
                 </select>
             );
@@ -96,12 +101,12 @@ export default function InputRow({ label, value, readOnly, defaultIndex, hint })
 
             {
                 hint
-                    ? (
-                        <i
-                            className='icon bi bi-info-circle'
-                            data-tip={hint}
-                        />
-                    )
+                    ?
+                    <i
+                        className='icon bi bi-info-circle'
+                        data-tip={hint}
+                    />
+
                     : null
             }
         </div>

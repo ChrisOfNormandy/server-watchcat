@@ -1,8 +1,10 @@
 .file-manager-container {
+  display: flex;
+  flex-direction: column;
+
   border: 1px solid white;
   padding: 12px;
-
-  overflow: auto;
+  height: fit-content;
 }
 
 .file-list {
@@ -11,8 +13,11 @@
 
   list-style: none;
 
-  padding: 6px;
-  background-color: white;
+  padding: 18px 6px;
+  margin: 0;
+  min-width: 350px;
+  min-height: 500px;
+  background-color: rgb(50, 50, 50);
 
   overflow: auto;
 }
@@ -21,9 +26,16 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+
   background-color: rgb(50, 50, 50);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: white;
+
   padding: 0 12px;
+}
+
+.file-row:hover {
+  border-left: 6px solid rgba(255, 255, 255, 0.2);
 }
 
 .file-name {
@@ -72,4 +84,11 @@
 
 .breadcrumb {
   padding: 0 8px;
+}
+
+.empty-file-list {
+  text-align: center;
+  height: 100%;
+  background-color: darkgrey;
+  padding: 12px;
 }

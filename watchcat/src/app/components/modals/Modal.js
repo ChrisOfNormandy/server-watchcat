@@ -10,7 +10,7 @@ export default class Modal extends React.Component {
             let style = window.getComputedStyle(e.target, null);
             e.dataTransfer.setData(
                 'text/plain',
-                (parseInt(style.getPropertyValue('left'), 10) - e.clientX) + ',' + (parseInt(style.getPropertyValue('top'), 10) - e.clientY) + ',' + e.target.id
+                parseInt(style.getPropertyValue('left'), 10) - e.clientX + ',' + (parseInt(style.getPropertyValue('top'), 10) - e.clientY) + ',' + e.target.id
             );
         };
 

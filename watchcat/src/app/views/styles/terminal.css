@@ -1,6 +1,8 @@
 .console-container {
   border: 1px solid white;
   padding: 12px;
+  height: fit-content;
+  overflow: auto;
 }
 
 .terminal-container {

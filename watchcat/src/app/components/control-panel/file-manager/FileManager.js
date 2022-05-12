@@ -1,12 +1,10 @@
-/* eslint-disable react/prop-types */
-
 import React from 'react';
+import Modal from '../../modals/Modal';
 import ReactTooltip from 'react-tooltip';
-
-import { get, post, sendForm } from '../../../helpers/net-handler';
 import toasts from '../../../helpers/toasts';
 import InputRow from '../../fragments/InputRow';
-import Modal from '../../modals/Modal';
+
+import { get, post, sendForm } from '../../../helpers/net-handler';
 
 import './styles/file-manager.css';
 
@@ -228,41 +226,39 @@ function FileObj(
         openModal,
         closeModal }
 ) {
-    const getModal = (fileData) => {
-        const id = `${file}_modal`;
+    const id = `${file}_modal`;
 
+    const getModal = (fileData) => {
         let modalBody = null;
 
         if (fileData !== null) {
             if (fileData.text !== undefined) {
-                modalBody =
-                    <form
-                        onSubmit={
-                            (e) => {
-                                e.preventDefault();
+                modalBody = <form
+                    onSubmit={
+                        (e) => {
+                            e.preventDefault();
 
-                                const fields = Object.fromEntries(new FormData(e.target));
+                            const fields = Object.fromEntries(new FormData(e.target));
 
-                                sendForm(`/upload/${path}`, new File([fields.content], file, { type: fileData.file.type }))
-                                    .then((response) => response.text())
-                                    .then(() => {
-                                        toasts.success(`Uploaded ${file}.`);
-                                    })
-                                    .catch((err) => console.error(err));
-                            }
+                            sendForm(`/upload/${path}`, new File([fields.content], file, { type: fileData.file.type }))
+                                .then((response) => response.text())
+                                .then(() => {
+                                    toasts.success(`Uploaded ${file}.`);
+                                })
+                                .catch((err) => console.error(err));
                         }
+                    }
+                >
+                    <textarea
+                        name='content'
+                        defaultValue={fileData.text}
+                    />
+                    <button
+                        type='submit'
                     >
-                        <textarea
-                            name='content'
-                            defaultValue={fileData.text}
-                        />
-                        <button
-                            type='submit'
-                        >
-                            Save
-                        </button>
-                    </form>
-                    ;
+                        Save
+                    </button>
+                </form>;
             }
             else if (fileData.src !== undefined) {
                 modalBody =
@@ -291,98 +287,10 @@ function FileObj(
             }
         }
 
-        const modal =
-            <Modal
-                id={id}
-                title={file}
-                onClose={closeModal}
-            >
-                <div>
-                    <form
-                        onSubmit={
-                            (e) => {
-                                e.preventDefault();
-                                const fields = Object.fromEntries(new FormData(e.target));
-                                renameFile(file, fields);
-                            }
-                        }
-                    >
-                        <input
-                            name='filename'
-                            type='text'
-                            defaultValue={file}
-                        />
-                        <button
-                            type='submit'
-                        >
-                            Rename
-                        </button>
-                    </form>
-
-                    <button
-                        onClick={
-                            (e) => {
-                                e.preventDefault();
-                                downloadFile(new File([fileData.file], fileData.name));
-                            }
-                        }
-                    >
-                        Download
-                    </button>
-
-                    <div>
-                        {modalBody}
-                    </div>
-                </div>
-            </Modal>
-            ;
-
-        openModal(file + '_modal', modal);
-    };
-
-    return (
-        <>
-            <span
-                className='file-name file'
-                data-tip={`Click to view as ${ext}`}
-                onClick={
-                    () => {
-                        getFile(file)
-                            .then((fileData) => getModal(fileData))
-                            .catch((err) => console.error(err));
-                    }
-                }
-            >
-                {file}
-            </span>
-
-            <span
-                className='file-row-controls'
-            >
-                <button
-                    className='btn primary'
-                    onClick={() => deleteFile(file)}
-                >
-                    <i className='icon bi bi-trash' />
-                </button>
-            </span>
-        </>
-    );
-}
-
-/**
- *
- * @param {*} param0
- * @returns
- */
-function FolderObj({ file, getFiles, updateParentDir, deleteFolder, renameFolder, openModal, closeModal }) {
-    const id = `${file}_modal`;
-
-    const modal =
-        <Modal
+        const modal = <Modal
             id={id}
             title={file}
-            onClose={() => closeModal(id)}
+            onClose={closeModal}
         >
             <div>
                 <form
@@ -390,7 +298,7 @@ function FolderObj({ file, getFiles, updateParentDir, deleteFolder, renameFolder
                         (e) => {
                             e.preventDefault();
                             const fields = Object.fromEntries(new FormData(e.target));
-                            renameFolder(file, fields);
+                            renameFile(file, fields);
                         }
                     }
                 >
@@ -405,15 +313,158 @@ function FolderObj({ file, getFiles, updateParentDir, deleteFolder, renameFolder
                         Rename
                     </button>
                 </form>
+
+                <button
+                    onClick={
+                        (e) => {
+                            e.preventDefault();
+                            downloadFile(new File([fileData.file], fileData.name));
+                        }
+                    }
+                >
+                    Download
+                </button>
+
+                <button
+                    type='button'
+                    className='btn primary'
+                    onClick={
+                        () => {
+                            deleteFile(file);
+                            closeModal(id);
+                        }
+                    }
+                >
+                    <i
+                        className='icon bi bi-trash'
+                    />
+                </button>
+
+                <div>
+                    {modalBody}
+                </div>
             </div>
-        </Modal>
-        ;
+        </Modal>;
+
+        openModal(file + '_modal', modal);
+    };
+
+    return (
+        <>
+            <span
+                className='file-name file'
+                data-tip={`Click to view as ${ext}`}
+                data-for={`${id}_tooltip`}
+                onClick={
+                    () => {
+                        getFile(file)
+                            .then((fileData) => getModal(fileData))
+                            .catch((err) => console.error(err));
+                    }
+                }
+            >
+                {file}
+            </span>
+
+            <ReactTooltip
+                id={`${id}_tooltip`}
+                delayShow={500}
+                place='left'
+            />
+        </>
+    );
+}
+
+/**
+ *
+ * @param {*} param0
+ * @returns
+ */
+function FolderObj(
+    {
+        file,
+        path,
+        getFiles,
+        updateParentDir,
+        deleteFolder,
+        renameFolder,
+        openModal,
+        closeModal
+    }
+) {
+    const id = `${file}_modal`;
+
+    const downloadAsZip = () => {
+        console.log('Download:', path, file);
+
+        const dirPath = path === ''
+            ? file
+            : path + '*' + file;
+
+        post(`/files/zip/${dirPath}`)
+            .then((response) => response.blob())
+            .then((blob) => downloadFile(new File([blob], file + '.zip')))
+            .catch((err) => console.error(err));
+    };
+
+    const modal = <Modal
+        id={id}
+        title={file}
+        onClose={() => closeModal(id)}
+    >
+        <div>
+            <form
+                onSubmit={
+                    (e) => {
+                        e.preventDefault();
+                        const fields = Object.fromEntries(new FormData(e.target));
+                        renameFolder(file, fields);
+                    }
+                }
+            >
+                <input
+                    name='filename'
+                    type='text'
+                    defaultValue={file}
+                />
+
+                <button
+                    type='submit'
+                >
+                    Rename
+                </button>
+
+                <button
+                    type='button'
+                    onClick={downloadAsZip}
+                >
+                    Download as Zip
+                </button>
+
+                <button
+                    type='button'
+                    className='btn primary'
+                    onClick={
+                        () => {
+                            deleteFolder(file);
+                            closeModal(id);
+                        }
+                    }
+                >
+                    <i
+                        className='icon bi bi-trash'
+                    />
+                </button>
+            </form>
+        </div>
+    </Modal>;
 
     return (
         <>
             <span
                 className='file-name folder'
                 data-tip='Click to expand'
+                data-for={`${id}_tooltip`}
                 onClick={
                     () => {
                         updateParentDir();
@@ -430,17 +481,18 @@ function FolderObj({ file, getFiles, updateParentDir, deleteFolder, renameFolder
                 <button
                     className='btn primary'
                     onClick={() => openModal(id, modal)}
+                    data-tip='Options'
+                    data-for={`${id}_tooltip`}
                 >
-                    <i className='icon bi bi-pencil' />
-                </button>
-
-                <button
-                    className='btn primary'
-                    onClick={() => deleteFolder(file)}
-                >
-                    <i className='icon bi bi-trash' />
+                    <i className='icon bi bi-three-dots' />
                 </button>
             </span>
+
+            <ReactTooltip
+                id={`${id}_tooltip`}
+                delayShow={500}
+                place='left'
+            />
         </>
     );
 }
@@ -670,43 +722,48 @@ export default class FileManger extends React.Component {
                 onDragOver={onDragOver}
             >
                 {
-                    list.files.map((file, f) => {
-                        const ext = getExtention(file);
+                    list.files.length
+                        ? list.files.map((file, f) => {
+                            const ext = getExtention(file);
 
-                        return (
-                            <li
-                                key={f}
-                                className='file-row'
-                            >
-                                {
-                                    ext === null
-                                        ?
-                                        <FolderObj
-                                            file={file}
-                                            getFiles={this.getFiles}
-                                            updateParentDir={this.updateParentDir}
-                                            deleteFolder={this.deleteFolder}
-                                            renameFolder={this.renameFolder}
-                                            openModal={this.openModal}
-                                            closeModal={this.closeModal}
-                                        />
-
-                                        :
-                                        <FileObj
-                                            file={file}
-                                            path={path}
-                                            ext={ext}
-                                            getFile={this.getFile}
-                                            deleteFile={this.deleteFile}
-                                            renameFile={this.renameFile}
-                                            openModal={this.openModal}
-                                            closeModal={this.closeModal}
-                                        />
-
-                                }
-                            </li>
-                        );
-                    })
+                            return (
+                                <li
+                                    key={f}
+                                    className='file-row'
+                                >
+                                    {
+                                        ext === null
+                                            ? <FolderObj
+                                                file={file}
+                                                path={this.getCurrentPath()}
+                                                getFiles={this.getFiles}
+                                                updateParentDir={this.updateParentDir}
+                                                deleteFolder={this.deleteFolder}
+                                                renameFolder={this.renameFolder}
+                                                openModal={this.openModal}
+                                                closeModal={this.closeModal}
+                                            />
+                                            : <FileObj
+                                                file={file}
+                                                path={path}
+                                                ext={ext}
+                                                getFile={this.getFile}
+                                                deleteFile={this.deleteFile}
+                                                renameFile={this.renameFile}
+                                                openModal={this.openModal}
+                                                closeModal={this.closeModal}
+                                            />
+                                    }
+                                </li>
+                            );
+                        })
+                        : <div
+                            className='empty-file-list'
+                        >
+                            <div>
+                                Empty
+                            </div>
+                        </div>
                 }
             </ul>
         );
@@ -755,8 +812,7 @@ export default class FileManger extends React.Component {
             const breadcrumb = navArr.join('/');
 
             return list.parent !== null
-                ?
-                <div
+                ? <div
                     className='file-manager-breadcrumb'
                 >
                     <button
@@ -783,17 +839,13 @@ export default class FileManger extends React.Component {
                         <b>{cur}</b>
                     </span>
                 </div>
-
-                :
-                <span>
+                : <span>
                     Home
-                </span>
-                ;
+                </span>;
         };
 
         return this.state.files.has(this.state.currentDir)
-            ?
-            <div
+            ? <div
                 className='file-manager-container'
             >
                 <div
@@ -814,12 +866,7 @@ export default class FileManger extends React.Component {
                 </div>
 
                 {this.listDir(list)}
-
-                <ReactTooltip
-                    delayShow={500}
-                />
             </div>
-
             : null;
     }
 
