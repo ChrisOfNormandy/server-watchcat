@@ -144,6 +144,15 @@ export default class ServerView extends React.Component {
 
     componentDidMount() {
         this.connect();
+
+        fetch('feature-flags.json')
+            .then((response) => response.json())
+            .then((featureFlags) => {
+                let state = this.state;
+                state.featureFlags = featureFlags;
+                this.setState(state);
+            })
+            .catch((err) => console.error(err));
     }
 
     render() {
@@ -157,6 +166,11 @@ export default class ServerView extends React.Component {
             const offset = e.dataTransfer.getData('text/plain').split(',');
 
             const dm = document.getElementById(offset[2]);
+
+            // TODO: THIS FIRES OFF WHEN DROPPING FILES.
+            // FIX THIS ISSUE!
+            if (!dm)
+                return false;
 
             dm.style.left = e.clientX + parseInt(offset[0], 10) + 'px';
             dm.style.top = e.clientY + parseInt(offset[1], 10) + 'px';
@@ -174,7 +188,7 @@ export default class ServerView extends React.Component {
             >
                 <ControlPanel
                     connect={this.connect}
-                    getSocket={this.getSocket}
+                    featureFlags={this.state.featureFlags}
                 />
 
                 <div
@@ -249,7 +263,8 @@ export default class ServerView extends React.Component {
              */
             socket: null,
             logs: [],
-            modals: new Map()
+            modals: new Map(),
+            featureFlags: null
         };
 
         this.connect = this.connect.bind(this);

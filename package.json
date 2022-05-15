@@ -1,6 +1,6 @@
 {
     "name": "server-watchcat",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Server Utility",
     "main": "index.js",
     "author": "ChrisOfNormandy",
@@ -26,13 +26,7 @@
         "start": "nodemon --trace-warnings index.js ",
         "runBot": "cd bot && yarn start",
         "build": "cd watchcat && yarn build",
-        "dev": "cd watchcat && yarn start",
-        "zip": "zip -r export.zip export",
-        "clearExport": "rm -r export && mkdir export && rm export.zip",
-        "exportBuild": "cp -r watchcat/build export",
-        "exportServer": "cp -r src export && cp index.js export && cp package.json export && cp .env export && cp env.js export",
-        "exportBot": "cp -r bot export",
-        "export": "yarn exportBuild && yarn exportServer && yarn exportBot && yarn zip"
+        "runPanel": "cd watchcat && yarn start"
     },
     "repository": {},
     "private": true,

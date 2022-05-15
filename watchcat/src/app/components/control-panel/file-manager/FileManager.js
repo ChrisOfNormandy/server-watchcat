@@ -522,8 +522,9 @@ export default class FileManger extends React.Component {
     }
 
     update() {
-        const path = this.getCurrentPath().slice('*').slice(-1);
-        this.getFiles(path);
+        const path = this.getCurrentPath();
+        console.debug('Updating and moving to:', path);
+        this.getFiles();
     }
 
     deleteFile(path) {
@@ -547,6 +548,8 @@ export default class FileManger extends React.Component {
     }
 
     createFolder(path) {
+        console.debug('Create dir:', path);
+
         post(`/files/create-dir/${path}`)
             .then((response) => response.text())
             .then(() => {
@@ -649,14 +652,29 @@ export default class FileManger extends React.Component {
         });
     }
 
-    getFiles(path) {
+    // Run on clicking "Refresh"
+    getFiles(path = '') {
         const curPath = this.getCurrentPath().replace(/\//g, '*');
 
-        const p = curPath
-            ? `${curPath}*${path}`
-            : path;
+        console.debug('path: ', path, '|', 'curPath:', curPath);
 
-        get(`/files/${p || 'home'}`)
+        let p = '';
+
+        if (path === '' && curPath) {
+            p = curPath;
+        }
+        else if (path === '') {
+            p = 'home';
+        }
+        else {
+            p = curPath
+                ? `${curPath}*${path}`
+                : path;
+        }
+
+        console.debug('Getting -->', p);
+
+        get(`/files/${p} `)
             .then((response) => response.json())
             .then((list) => {
                 const folders = [],
@@ -696,15 +714,30 @@ export default class FileManger extends React.Component {
             if (!path)
                 path = 'home';
 
-            const file = e.dataTransfer.files[0];
+            const len = e.dataTransfer.files.length;
+            let i = 0;
 
-            sendForm(`/upload/${path}`, file)
-                .then((response) => response.text())
-                .then(() => {
-                    toasts.success(`Uploaded ${file.name}.`);
-                    this.update();
-                })
-                .catch((err) => console.error(err));
+            const updateNotif = (file) => {
+                toasts.success(`Uploaded: ${file.name}.`);
+            };
+
+            const onUpload = (file) => {
+                updateNotif(file);
+            };
+
+            // Upload files to server
+            while (i < len) {
+                const file = e.dataTransfer.files[i];
+
+                sendForm(`/upload/${path}`, file)
+                    .then(() => onUpload(file))
+                    .catch((err) => {
+                        console.error(err);
+                        toasts.error(`Failed to upload ${file.name}.`);
+                    });
+
+                i++;
+            }
         };
 
         const onDragOver = (e) => {
@@ -760,9 +793,9 @@ export default class FileManger extends React.Component {
                         : <div
                             className='empty-file-list'
                         >
-                            <div>
+                            <span>
                                 Empty
-                            </div>
+                            </span>
                         </div>
                 }
             </ul>
@@ -782,26 +815,30 @@ export default class FileManger extends React.Component {
 
         const list = this.state.files.get(this.state.currentDir);
 
+        const newFolder = () => {
+            let name = prompt('Folder name');
+
+            if (name) {
+                const p = this.getCurrentPath().replace(/\//g, '*');
+                let path = p
+                    ? p + '*' + name
+                    : name;
+
+                console.debug('Creating folder:', path);
+
+                this.createFolder(path);
+            }
+        };
+
         const NewFolderBtn = () => {
             return (
                 <button
                     className='btn primary'
-                    onClick={
-                        () => {
-                            let name = prompt('Folder name');
-
-                            if (name) {
-                                const p = this.getCurrentPath();
-                                let path = p
-                                    ? p + '/' + name
-                                    : name;
-
-                                this.createFolder(path);
-                            }
-                        }
-                    }
+                    onClick={newFolder}
                 >
-                    <i className='icon bi bi-folder-plus' />
+                    <i
+                        className='icon bi bi-folder-plus'
+                    />
                 </button>
             );
         };
@@ -817,6 +854,8 @@ export default class FileManger extends React.Component {
                 >
                     <button
                         className='btn primary'
+                        data-tip={`Up to "${breadcrumb || 'home'}"`}
+                        data-for='breadcrumb_tooltip'
                         onClick={
                             () => {
                                 let state = this.state;
@@ -838,6 +877,12 @@ export default class FileManger extends React.Component {
                         <span>Currently browsing: </span>
                         <b>{cur}</b>
                     </span>
+
+                    <ReactTooltip
+                        id='breadcrumb_tooltip'
+                        delayShow={500}
+                        place='left'
+                    />
                 </div>
                 : <span>
                     Home
@@ -852,20 +897,22 @@ export default class FileManger extends React.Component {
                     className='file-manager-header'
                 >
                     <Breadcrumb />
+                </div>
+
+                {this.listDir(list)}
+
+                <div
+                    className='file-manager-footer'
+                >
                     <NewFolderBtn />
 
                     <button
-                        onClick={
-                            () => {
-                                this.getFiles('home');
-                            }
-                        }
+                        className='btn primary'
+                        onClick={() => this.getFiles()}
                     >
                         Refresh
                     </button>
                 </div>
-
-                {this.listDir(list)}
             </div>
             : null;
     }

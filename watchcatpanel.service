@@ -1,8 +1,7 @@
 [Unit]
-Description=Server Watchcat Web Interface
+Description=Server Watchcat Web Interface Service
 
 [Service]
-Environment=NODE_PORT=8000
 Type=simple
 User=ubuntu
 ExecStart=/usr/bin/node /home/ubuntu/server-watchcat/index.js

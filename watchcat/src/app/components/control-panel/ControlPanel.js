@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-
 import React from 'react';
 import { get, post } from '../../helpers/net-handler';
 import toasts from '../../helpers/toasts';
@@ -7,11 +5,14 @@ import toasts from '../../helpers/toasts';
 import './styles/control-panel.css';
 
 /**
+ * @typedef Props
+ * @property {function()} connect
+ * @property {Object.<string, *>} featureFlags
  *
- * @param {*} param0
+ * @param {Props} param0
  * @returns
  */
-export default function ControlPanel({ connect }) {
+export default function ControlPanel({ connect, featureFlags }) {
 
     const start = (e) => {
         e.preventDefault();
@@ -55,6 +56,19 @@ export default function ControlPanel({ connect }) {
 
     const restart = (e) => {
         e.preventDefault();
+
+        post('/stop')
+            .then(() => {
+                const jvmArgs = Object.fromEntries(new FormData(document.getElementById('control_panel')));
+
+                console.debug('Using JVM:', jvmArgs);
+
+                post('/start', jvmArgs)
+                    .then((response) => response.text())
+                    .then(() => setTimeout(connect, 1000))
+                    .catch((err) => console.error(err));
+            })
+            .catch((err) => console.error(err));
     };
 
     const send = (e) => {
@@ -97,6 +111,16 @@ export default function ControlPanel({ connect }) {
             .then((data) => console.log(data))
             .catch((err) => console.error(err));
     };
+
+    if (featureFlags === null) {
+        console.error('Failed to fetch feature flags.');
+
+        return null;
+    }
+
+    let maxMemory = featureFlags.jvm_arguments.max_memory;
+    if (maxMemory < 1)
+        maxMemory = null;
 
     return (
         <div>
@@ -184,12 +208,13 @@ export default function ControlPanel({ connect }) {
                             >
                                 Memory (G)
                             </label>
+
                             <input
                                 type='number'
                                 name='jvm_memory'
                                 className='input'
-                                min={0}
-                                max={8}
+                                min={1}
+                                max={maxMemory}
                                 defaultValue={6}
                                 required
                             />
@@ -250,6 +275,7 @@ export default function ControlPanel({ connect }) {
 
                     <button
                         type='submit'
+                        className='btn primary'
                     >
                         Install
                     </button>

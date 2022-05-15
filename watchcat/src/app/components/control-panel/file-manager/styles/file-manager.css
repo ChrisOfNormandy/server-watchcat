@@ -5,6 +5,7 @@
   border: 1px solid white;
   padding: 12px;
   height: fit-content;
+  max-height: 800px;
 }
 
 .file-list {
@@ -64,7 +65,7 @@
   margin-left: 12px;
 }
 
-.file-manager-header {
+.file-manager-header, .file-manager-footer {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -80,6 +81,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 
 .breadcrumb {

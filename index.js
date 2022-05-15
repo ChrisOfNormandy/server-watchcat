@@ -15,6 +15,16 @@ const { createServer } = require('http');
 const { exec } = require('child_process');
 const { mcServer } = require('./src/server');
 const { init } = require('./src/handlers/auth');
+const { readFile } = require('fs');
+
+/**
+ *
+ * @param {string} file
+ * @returns
+ */
+function getDocumentation(file) {
+    return __dirname + '/documentation/' + file;
+}
 
 /**
  *
@@ -76,6 +86,17 @@ function startHttpServer() {
     app.get('/files/:dir', ftp.fetch);
 
     app.post('/login', auth.login);
+
+    app.get('/wall-of-text', (req, res) => {
+        readFile(getDocumentation('wall-of-text.txt'), (err, data) => {
+            if (err) {
+                logging.error(err);
+                res.send('');
+            }
+            else
+                res.send(data);
+        });
+    });
 
     app.get('/status', (req, res) => res.send(mcServer.getStatus()));
 

@@ -1,0 +1,5 @@
+{
+    "jvm_arguments": {
+        "max_memory": -1
+    }
+}
