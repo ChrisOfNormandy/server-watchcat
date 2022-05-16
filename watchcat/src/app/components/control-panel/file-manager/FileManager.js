@@ -330,7 +330,7 @@ function FileObj(
                     className='btn primary'
                     onClick={
                         () => {
-                            deleteFile(file);
+                            deleteFile(path + '*' + file);
                             closeModal(id);
                         }
                     }
@@ -528,6 +528,8 @@ export default class FileManger extends React.Component {
     }
 
     deleteFile(path) {
+        console.debug('Deleting file:', path);
+
         post(`/files/delete/${path}`)
             .then((response) => response.text())
             .then(() => {
@@ -538,6 +540,8 @@ export default class FileManger extends React.Component {
     }
 
     deleteFolder(path) {
+        console.debug('Deleting folder:', path);
+
         post(`/files/delete-dir/${path}`)
             .then((response) => response.text())
             .then(() => {
@@ -548,7 +552,7 @@ export default class FileManger extends React.Component {
     }
 
     createFolder(path) {
-        console.debug('Create dir:', path);
+        console.debug('Creating folder:', path);
 
         post(`/files/create-dir/${path}`)
             .then((response) => response.text())
@@ -560,6 +564,8 @@ export default class FileManger extends React.Component {
     }
 
     renameFile(path, body) {
+        console.debug('Renaming file:', path);
+
         post(`/files/rename/${path}`, body)
             .then((response) => response.text())
             .then(() => {
@@ -570,6 +576,8 @@ export default class FileManger extends React.Component {
     }
 
     renameFolder(path, body) {
+        console.debug('Renaming folder:', path);
+
         post(`/files/rename-dir/${path}`, body)
             .then((response) => response.text())
             .then(() => {
@@ -580,6 +588,8 @@ export default class FileManger extends React.Component {
     }
 
     getFile(path) {
+        console.debug('Getting file:', path);
+
         const curPath = this.getCurrentPath().replace(/\//g, '*');
 
         const p = curPath
@@ -654,9 +664,9 @@ export default class FileManger extends React.Component {
 
     // Run on clicking "Refresh"
     getFiles(path = '') {
-        const curPath = this.getCurrentPath().replace(/\//g, '*');
+        console.debug('Getting files:', path);
 
-        console.debug('path: ', path, '|', 'curPath:', curPath);
+        const curPath = this.getCurrentPath().replace(/\//g, '*');
 
         let p = '';
 

@@ -2,8 +2,8 @@
 
 INSTALL_PATH=server-watchcat
 
-RELEASE_NAME=watchcat_1.1.0
-RELEASE_TAG=beta-indev-1.1.0
+RELEASE_NAME=watchcat_1.1.1
+RELEASE_TAG=beta-indev-1.1.1
 
 echo "Welcome to the Server Watchcat service installer."
 echo "This will install: $RELEASE_NAME"

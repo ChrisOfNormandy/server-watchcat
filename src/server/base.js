@@ -87,16 +87,21 @@ class MinecraftServer {
                         this.send('stop\n');
 
                         setTimeout(() => {
-                            if (this.server.stdin)
-                                this.server.stdin.pause();
+                            // In case the server dies before we kill it.
+                            if (!this.server)
+                                resolve(false);
+                            else {
+                                if (this.server.stdin)
+                                    this.server.stdin.pause();
 
-                            this.server.kill();
+                                this.server.kill();
 
-                            logging.info('Server stopped.');
+                                logging.info('Server stopped.');
 
-                            this.server = null;
+                                this.server = null;
 
-                            resolve(this.getStatus());
+                                resolve(this.getStatus());
+                            }
                         }, 5000);
                     }
                 }
