@@ -11,6 +11,9 @@ import 'react-toastify/dist/ReactToastify.css';
  * @returns
  */
 function App() {
+    if (window.location.pathname !== '/')
+        window.location.href = window.location.origin;
+
     return (
         <div className='App'>
             <ServerView />

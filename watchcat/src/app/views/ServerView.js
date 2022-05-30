@@ -1,13 +1,159 @@
 import React from 'react';
 import toasts from '../helpers/toasts';
+import modalManager from './ModalManager';
+import FileManger from '../components/file-manager/FileManager';
 import ControlPanel from '../components/control-panel/ControlPanel';
-import FileManger from '../components/control-panel/file-manager/FileManager';
 
 import { io } from 'socket.io-client';
-import { domain, get, post } from '../helpers/net-handler';
+import { domain, get, getData, post } from '../helpers/net-handler';
 
 import './styles/view.css';
 import './styles/terminal.css';
+
+const timestamp = /(\[(\d+:\d+:\d+)\])\s*/;
+const warn = /(\[([\w\s-]+\/WARN)\])\s*/;
+const javaWarn = /WARNING/;
+const javaError = /ERROR/;
+const info = /(\[([\w\s-]+\/INFO)\])\s*/;
+const error = /(\[(([\w\s-]+\/ERROR)|(STDERR\/))\])\s*/;
+
+/**
+ *
+ * @param {string} line
+ */
+function FormattedTerminalLine(line, i) {
+    const parts = line.split(': ');
+
+    let out = parts.shift();
+    let end = ' ' + parts.join(': ');
+    const arr = [];
+
+    const classes = [
+        'terminal-line'
+    ];
+
+    /**
+     *
+     * @param {string} content
+     * @param  {...string} classes
+     */
+    const addPart = (content, ...classes) => {
+        return {
+            content,
+            classes
+        };
+    };
+
+    let match = out.match(timestamp);
+
+    if (match !== null) {
+        out = out.replace(match[1], '');
+
+        arr.push(
+            addPart('[', 'bracket'),
+            addPart(match[2], 'timestamp'),
+            addPart('] ', 'bracket')
+        );
+    }
+
+    match = out.match(warn);
+
+    if (match !== null) {
+        out = out.replace(match[1], '');
+
+        classes.push('warn-bg');
+
+        arr.push(
+            addPart('[', 'bracket'),
+            addPart(match[2], 'warn'),
+            addPart('] ', 'bracket')
+        );
+    }
+
+    match = out.match(javaWarn);
+
+    if (match !== null) {
+        out = out.replace(match[0], '');
+
+        classes.push('warn-bg');
+
+        arr.push(addPart('WARNING', 'warn'));
+    }
+
+    match = out.match(javaError);
+
+    if (match !== null) {
+        out = out.replace(match[0], '');
+
+        classes.push('error-bg');
+
+        arr.push(addPart('ERROR', 'error'));
+    }
+
+    match = out.match(info);
+
+    if (match !== null) {
+        out = out.replace(match[1], '');
+
+        arr.push(
+            addPart('[', 'bracket'),
+            addPart(match[2], 'info'),
+            addPart('] ', 'bracket')
+        );
+    }
+
+    match = out.match(error);
+
+    if (match !== null) {
+        out = out.replace(match[1], '');
+
+        classes.push('error-bg');
+
+        arr.push(
+            addPart('[', 'bracket'),
+            addPart(match[2], 'error'),
+            addPart('] ', 'bracket')
+        );
+    }
+
+    arr.push(addPart(out, ''));
+
+    return <div
+        key={i}
+        className={classes.join(' ')}
+    >
+        {
+            arr.map((v, i) =>
+                <span
+                    key={i}
+                    className={v.classes.join(' ')}
+                >
+                    {v.content}
+                </span>
+            )
+        }
+        {
+            <span>
+                {end}
+            </span>
+        }
+    </div>;
+}
+
+/**
+ *
+ * @param {*} param0
+ * @returns
+ */
+function TerminalLine({ log }) {
+    const lines = log.split('\n');
+
+    return <>
+        {
+            lines.map(FormattedTerminalLine)
+        }
+    </>;
+}
 
 /**
  * @typedef Props
@@ -19,15 +165,15 @@ import './styles/terminal.css';
 function Terminal({ logs }) {
     return (
         <div
+            id='terminal'
             className='terminal-container'
         >
             {
                 logs.map((log, i) =>
-                    <div
+                    <TerminalLine
                         key={i}
-                    >
-                        {log}
-                    </div>
+                        log={log}
+                    />
                 )
             }
         </div>
@@ -101,6 +247,10 @@ export default class ServerView extends React.Component {
                 }
             });
 
+            state.socket.on('ftpupdate', () => {
+                document.getElementById('refresh_file_list').click();
+            });
+
             state.socket.on('disconnect', (reason) => {
                 console.debug('Socket disconnected:', reason);
                 toasts.info(`Disconnected: ${reason || 'unknown reason'}`, 'Connection');
@@ -142,114 +292,171 @@ export default class ServerView extends React.Component {
         this.setState(state);
     }
 
+    refresh() {
+        getData('/profiles/list')
+            .then((list) => {
+                let state = this.state;
+                state.profileList = list;
+                this.setState(state);
+            })
+            .catch(console.error);
+    }
+
     componentDidMount() {
         this.connect();
 
-        fetch('feature-flags.json')
-            .then((response) => response.json())
+        getData('/feature-flags.json')
             .then((featureFlags) => {
                 let state = this.state;
                 state.featureFlags = featureFlags;
-                this.setState(state);
+                this.setState(state, () => {
+                    this.refresh();
+                });
             })
-            .catch((err) => console.error(err));
+            .catch(console.error);
     }
 
     render() {
-        const dragOver = (e) => {
+        const sendCommand = (e) => {
             e.preventDefault();
 
-            return false;
+            const fields = Object.fromEntries(new FormData(e.target));
+
+            post('/send', JSON.stringify({ message: fields.cmd }))
+                .then((response) => response.text())
+                .then(() => {
+                    const elem = document.getElementById('terminal_input');
+                    if (elem)
+                        elem.value = null;
+
+                    setTimeout(scrollToBottom, 500);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    toasts.error(err.message);
+                });
         };
 
-        const drop = (e) => {
-            const offset = e.dataTransfer.getData('text/plain').split(',');
+        const scrollToTop = () => {
+            const elem = document.getElementById('terminal');
+            elem.scrollTop = 0;
+        };
 
-            const dm = document.getElementById(offset[2]);
+        const scrollToBottom = () => {
+            const elem = document.getElementById('terminal');
+            elem.scrollTop = elem.scrollHeight;
+        };
 
-            // TODO: THIS FIRES OFF WHEN DROPPING FILES.
-            // FIX THIS ISSUE!
-            if (!dm)
-                return false;
+        const ConsoleContainer = () => <div
+            className='container'
+        >
+            <div
+                className='terminal-controls'
+            >
+                <button
+                    type='button'
+                    className='btn primary'
+                    onClick={scrollToTop}
+                >
+                    Top
+                </button>
 
-            dm.style.left = e.clientX + parseInt(offset[0], 10) + 'px';
-            dm.style.top = e.clientY + parseInt(offset[1], 10) + 'px';
+                <button
+                    type='button'
+                    className='btn primary'
+                    onClick={scrollToBottom}
+                >
+                    Bottom
+                </button>
+            </div>
 
-            e.preventDefault();
+            <Terminal
+                logs={this.state.logs}
+            />
 
-            return false;
+            <div
+                className='terminal-controls'
+            >
+                <button
+                    className='btn primary'
+                    onClick={this.clearLogs}
+                >
+                    Clear Logs
+                </button>
+
+                <form
+                    className='terminal-input-row'
+                    onSubmit={sendCommand}
+                >
+                    <div
+                        className='input-row'
+                    >
+                        <input
+                            type='text'
+                            name='cmd'
+                            id='terminal_input'
+                            className='input left'
+                            placeholder='>_'
+                        />
+
+                        <button
+                            type='submit'
+                            className='btn primary'
+                        >
+                            Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div >;
+
+        const profiles = {
+            list: this.state.profileList
         };
 
         return (
             <div
                 className='view'
-                onDragOver={dragOver}
-                onDrop={drop}
             >
-                <ControlPanel
-                    connect={this.connect}
-                    featureFlags={this.state.featureFlags}
-                />
-
                 <div
-                    className='console-container'
+                    className='view-part'
                 >
-                    <Terminal
-                        logs={this.state.logs}
+                    <ControlPanel
+                        openModal={this.openModal}
+                        closeModal={this.closeModal}
+                        connect={this.connect}
+                        featureFlags={this.state.featureFlags}
+                        profiles={profiles}
+                        refresh={this.refresh}
                     />
-
-                    <div
-                        className='terminal-controls'
-                    >
-                        <button
-                            className='btn primary'
-                            onClick={this.clearLogs}
-                        >
-                            Clear Logs
-                        </button>
-
-                        <form
-                            className='terminal-input-row'
-                            onSubmit={
-                                (e) => {
-                                    e.preventDefault();
-
-                                    const fields = Object.fromEntries(new FormData(e.target));
-
-                                    post('/send', JSON.stringify({ message: fields.cmd }))
-                                        .then((response) => response.text())
-                                        .then(() => {
-                                            const elem = document.getElementById('terminal_input');
-                                            if (elem)
-                                                elem.value = null;
-                                        })
-                                        .catch((err) => console.error(err));
-                                }
-                            }
-                        >
-                            <input
-                                type='text'
-                                name='cmd'
-                                id='terminal_input'
-                                className='terminal-input'
-                                placeholder='>_'
-                            />
-                            <button
-                                type='submit'
-                                className='terminal-input-btn btn primary'
-                            >
-                                Send
-                            </button>
-                        </form>
-                    </div>
                 </div>
 
-                <FileManger
-                    openModal={this.openModal}
-                    closeModal={this.closeModal}
-                />
+                <div
+                    className='view-part'
+                >
+                    <ConsoleContainer />
+                </div>
 
-                {Array.from(this.state.modals.values()).map((modal, i) => <div key={i}>{modal}</div>)}
+                <div
+                    className='view-part'
+                >
+                    <FileManger
+                        openModal={this.openModal}
+                        closeModal={this.closeModal}
+                    />
+                </div>
+
+                {
+                    Array.from(this.state.modals.keys())
+                        .map((key, i) =>
+                            <div
+                                key={i}
+                                id={`modal_${key}`}
+                            >
+                                {this.state.modals.get(key)}
+                            </div>
+                        )
+                }
             </div>
         );
     }
@@ -264,13 +471,25 @@ export default class ServerView extends React.Component {
             socket: null,
             logs: [],
             modals: new Map(),
-            featureFlags: null
+
+            /**
+             * @type {Object.<string, *>}
+             */
+            featureFlags: null,
+            /**
+             * @type {string[]}
+             */
+            profileList: [],
+            scrollPos: 0
         };
 
+        this.refresh = this.refresh.bind(this);
         this.connect = this.connect.bind(this);
         this.getSocket = this.getSocket.bind(this);
         this.clearLogs = this.clearLogs.bind(this);
         this.openModal = this.openModal.bind(this);
         this.closeModal = this.closeModal.bind(this);
+
+        modalManager.init(this.openModal, this.closeModal);
     }
 }

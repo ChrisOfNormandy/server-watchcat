@@ -8,8 +8,11 @@ const ex = {
     web: __dirname + process.env.WEB_PATH,
     datapath: os.homedir + '/.watchcat',
     users: os.homedir + '/.watchcat/users',
+    server_profiles: os.homedir + '/.watchcat/server_profiles',
     twoFA: process.env.TWOFA_NAME,
     minecraft: process.env.SERVER_PATH,
+    noValidate: process.env.NO_VALIDATE,
+
     userPath(user) {
         return `${ex.users}/${user}.user`;
     },
@@ -19,9 +22,25 @@ const ex = {
                 if (err)
                     reject(err);
                 else
-                    resolve(data[user]);
+                    resolve(JSON.parse(data)[user]);
             });
         });
+    },
+    getUserById(id) {
+        if (!fs.existsSync(ex.datapath + '/users.json'))
+            return id;
+
+        const data = fs.readFileSync(ex.datapath + '/users.json', 'utf-8');
+
+        const users = JSON.parse(data);
+
+        for (let name in users) {
+            if (users[name] === id) {
+                return name;
+            }
+        }
+
+        return id;
     },
     cacheUser(user, id) {
         return new Promise((resolve, reject) => {
@@ -43,6 +62,7 @@ const ex = {
                 else {
                     const json = JSON.parse(original);
                     json[user] = { id };
+
                     fs.writeFile(ex.datapath + '/users.json', JSON.stringify(json, null, 4), (err) => {
                         if (err)
                             reject(err);

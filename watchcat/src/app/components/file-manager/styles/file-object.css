@@ -1,0 +1,25 @@
+.file-editor {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-editor textarea {
+  min-width: 500px;
+  min-height: 300px;
+}
+
+.img-preview-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin: 12px 0;
+}
+
+.img-preview {
+  max-width: 400px;
+  height: auto;
+  padding: 8px;
+  background-color: black;
+  border-radius: 10%;
+}

@@ -27,9 +27,9 @@ class MinecraftServer {
         return this.history;
     }
 
-    start(jvmArgs) {
+    start(profile) {
         return new Promise((resolve, reject) => {
-            start(this, jvmArgs)
+            start(this, profile)
                 .then((serverProcess) => {
                     if (serverProcess !== null) {
                         this.server = serverProcess;

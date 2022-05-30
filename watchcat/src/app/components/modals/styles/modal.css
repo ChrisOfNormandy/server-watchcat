@@ -6,16 +6,45 @@
 
   background-color: white;
 
-  padding: 12px;
   border-radius: 10px;
 
   resize: both;
   overflow: auto;
 }
 
-.modal-header {
+.modal-header, .modal-footer {
+  position: relative;
+
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+}
+
+.modal-header {
+  padding: 4px;
+  background-color: grey;
+}
+
+.modal-footer {
+  padding: 4px 8px 16px;
+}
+
+.modal-title {
+  margin: 0 12px 0;
+  user-select: none;
+}
+
+.modal-body {
+  padding: 12px;
+  overflow: auto;
+}
+
+.modal-section-title {
+  font-weight: 700;
+  text-align: center;
+}
+
+.modal-section {
+  padding: 4px 8px;
 }

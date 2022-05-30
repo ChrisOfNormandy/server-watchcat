@@ -1,7 +1,10 @@
 const fs = require('fs');
 const env = require('../../env');
-const { getAuthToken } = require('../encryption');
 const logging = require('../logging/logging');
+
+const { getAuthToken } = require('../encryption');
+const cookies = require('./cookies');
+const { validSession } = require('./auth');
 
 /**
  *
@@ -26,33 +29,28 @@ function goHome(user, res) {
 module.exports = {
     goHome,
     index(req, res) {
-        logging.info('Request made to index.');
+        logging.info('Request made to panel.');
 
-        if (!req.cookies || !req.cookies.user || !req.cookies.session) {
+        const { user, session } = cookies.getAll(req);
+
+        if (!user || !session)
             res.sendFile(env.loginPath());
-        }
+        else if (validSession(user, session))
+            goHome({ id: user }, res);
         else {
-            const { user, session } = req.cookies;
-
-            const path = env.sessionPath(user);
-
-            if (fs.existsSync(path))
-                goHome({ id: user }, res);
-            else {
-                fs.readFile(env.userPath(user), (err, data) => {
-                    if (err) {
-                        logging.error(err);
-                        res.sendFile(env.loginPath());
-                    }
-                    else if (data.toString() === session) {
-                        goHome({ id: user }, res);
-                    }
-                    else {
-                        logging.info('Failed login attempt using session.', user);
-                        res.sendFile(env.loginPath());
-                    }
-                });
-            }
+            fs.readFile(env.userPath(user), (err, data) => {
+                if (err) {
+                    logging.error(err);
+                    res.sendFile(env.loginPath());
+                }
+                else if (data.toString() === session) {
+                    goHome({ id: user }, res);
+                }
+                else {
+                    logging.info('Failed login attempt using session.', user);
+                    res.sendFile(env.loginPath());
+                }
+            });
         }
     }
 };
