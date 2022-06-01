@@ -245,6 +245,10 @@ export default class FileManger extends React.Component {
     }
 
     listDir(list) {
+        /**
+         *
+         * @param {DragEvent} e
+         */
         const onDrop = (e) => {
             e.preventDefault();
 
@@ -263,16 +267,59 @@ export default class FileManger extends React.Component {
                 updateNotif(file);
             };
 
-            // Upload files to server
-            while (i < len) {
-                const file = e.dataTransfer.files[i];
+            /**
+             *
+             * @param {File} file
+             * @param {string} p
+             */
+            const addFile = (file, p = '') => {
+                let dir = path === 'home'
+                    ? p
+                    : path + p;
 
-                sendForm(`/upload/${path}`, file)
+                dir = dir.replace(/\//g, '*');
+
+                if (dir[dir.length - 1] === '*')
+                    dir = dir.slice(0, -1);
+
+                if (dir === '')
+                    dir = 'home';
+
+                sendForm(`/upload/${dir}`, file)
                     .then(() => onUpload(file))
                     .catch((err) => {
                         console.error(err);
                         toasts.error(`Failed to upload ${file.name}.`);
                     });
+            };
+
+            /**
+             *
+             * @param {DirectoryEntry | FileEntry} item
+             * @param {string} dir
+             */
+            const addFolder = (item, dir = '') => {
+                if (item.isDirectory) {
+                    let directoryReader = item.createReader();
+
+                    directoryReader.readEntries((entries) => {
+                        entries.forEach((entry) => addFolder(entry, entry.fullPath.replace(entry.name, '')));
+                    });
+                }
+                else
+                    item.file((file) => addFile(file, dir));
+            };
+
+            const list = e.dataTransfer.items || e.dataTransfer.files;
+
+            while (i < len) {
+                const file = list[i].getAsFile();
+                const entry = list[i].webkitGetAsEntry();
+
+                if (entry.isDirectory)
+                    addFolder(entry);
+                else
+                    addFile(file);
 
                 i++;
             }

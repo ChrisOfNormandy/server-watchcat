@@ -65,6 +65,18 @@ else
 
     sudo npm install -g npm@latest
     sudo npm install -g yarn@latest
+
+    if [ -e ~/$INSTALL_PATH/node_modules ]
+    then
+        rm -r ~/$INSTALL_PATH/node_modules
+        rm ~/$INSTALL_PATH/yarn.lock
+    fi
+
+    if [ -e ~/$INSTALL_PATH/bot/node_modules ]
+    then
+        rm -r ~/$INSTALL_PATH/bot/node_modules
+        rm ~/$INSTALL_PATH/bot/yarn.lock
+    fi
 fi
 
 if which systemctl > /dev/null
@@ -77,20 +89,27 @@ fi
 
 echo "Fetching zip: $RELEASE_NAME.zip from GitHub"
 
-cd ~
+if [ -e ~/$INSTALL_PATH/build ]
+then
+    rm -r ~/$INSTALL_PATH/build
+fi
+
+cd ~/
 
 if curl -L -O https://github.com/ChrisOfNormandy/server-watchcat/releases/download/$RELEASE_TAG/$RELEASE_NAME.zip
 then
-    unzip -qo $RELEASE_NAME.zip -d watchcat_tmp && rsync -av watchcat_tmp/$RELEASE_NAME/ $INSTALL_PATH
-
-    if [ ! -d $INSTALL_PATH/node_modules ]
+    if unzip -qo ~/$RELEASE_NAME.zip -d ~/watchcat_tmp
     then
-        cd $INSTALL_PATH && yarn --silent && cd ..
+        rsync -av ~/watchcat_tmp/$RELEASE_NAME/ ~/$INSTALL_PATH
+    else
+        echo "Failed to unzip files."
+        exit -1
     fi
 
-    if [ ! -d $INSTALL_PATH/bot/node_modules ]
+    cd ~/$INSTALL_PATH && yarn --silent
+    if [[ ! $* == *-nobot* ]]
     then
-        cd $INSTALL_PATH/bot && yarn --silent && cd ..
+        cd ~/$INSTALL_PATH/bot && yarn --silent
     fi
 
     if which systemctl > /dev/null
@@ -116,23 +135,26 @@ then
             echo "Failed to download panel service."
         fi
 
-        echo "Fetching bot service script from GitHub"
-        if curl -L -O https://github.com/ChrisOfNormandy/server-watchcat/releases/download/$RELEASE_TAG/watchcatbot.service
+        if [[ ! $* == *-nobot* ]]
         then
-            if sudo cp watchcatbot.service /lib/systemd/system/watchcatbot.service
+            echo "Fetching bot service script from GitHub"
+            if curl -L -O https://github.com/ChrisOfNormandy/server-watchcat/releases/download/$RELEASE_TAG/watchcatbot.service
             then
-                echo "Copied panel service to systemd"
+                if sudo cp watchcatbot.service /lib/systemd/system/watchcatbot.service
+                then
+                    echo "Copied panel service to systemd"
+                else
+                    echo "Please run:   sudo cp watchcatpanel.service /lib/systemd/system/watchcatbot.service"
+                    select yn in "Yes" "No"; do
+                        case $yn in
+                            Yes ) break;;
+                            No ) exit;;
+                        esac
+                    done
+                fi
             else
-                echo "Please run:   sudo cp watchcatpanel.service /lib/systemd/system/watchcatbot.service"
-                select yn in "Yes" "No"; do
-                    case $yn in
-                        Yes ) break;;
-                        No ) exit;;
-                    esac
-                done
+                echo "Failed to download bot service."
             fi
-        else
-            echo "Failed to download bot service."
         fi
 
         echo "Reloading systemctl daemon"
@@ -145,7 +167,11 @@ then
         echo "Done! Starting services."
 
         sudo systemctl start watchcatpanel
-        sudo systemctl start watchcatbot
+
+        if [[ ! $* == *-nobot* ]]
+        then
+            sudo systemctl start watchcatbot
+        fi
 
         echo "... and there you go! To set up logging:"
         echo "--- > sudo nano /etc/systemd/journald.conf"
@@ -156,11 +182,17 @@ then
         echo "---"
         echo "--- ... then to view service logs:"
         echo "--- > journalctl -f -o cat -u watchcatpanel"
-        echo "--- > journalctl -f -o cat -u watchcatbot"
+        if [[ ! $* == *-nobot* ]]
+        then
+            echo "--- > journalctl -f -o cat -u watchcatbot"
+        fi
         echo "---"
         echo "--- To start / stop / restart each service:"
         echo "--- > sudo systemctl start|stop|restart watchcatpanel"
-        echo "--- > sudo systemctl start|stop|restart watchcatbot"
+        if [[ ! $* == *-nobot* ]]
+        then
+            echo "--- > sudo systemctl start|stop|restart watchcatbot"
+        fi
         echo "--- (ex: sudo systemctl restart watchcatpanel)"
         echo "---"
     fi

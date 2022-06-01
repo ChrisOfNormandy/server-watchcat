@@ -7,7 +7,7 @@ const logging = require('../logging/logging');
 
 const { validate } = require('./validation');
 const { encrypt, decrypt } = require('../encryption');
-const { userPath, twoFA, users, userIsCached, cacheUser, getUserById } = require('../../env');
+const { userPath, twoFA, users, logpath, userIsCached, cacheUser, getUserById, minecraftPath } = require('../../env');
 
 /**
  *
@@ -15,6 +15,20 @@ const { userPath, twoFA, users, userIsCached, cacheUser, getUserById } = require
 function init() {
     if (!fs.existsSync(users)) {
         fs.mkdir(users, { recursive: true }, (err) => {
+            if (err)
+                logging.error(err);
+        });
+    }
+
+    if (!fs.existsSync(minecraftPath())) {
+        fs.mkdir(minecraftPath(), { recursive: true }, (err) => {
+            if (err)
+                logging.error(err);
+        });
+    }
+
+    if (!fs.existsSync(logpath)) {
+        fs.mkdir(logpath, { recursive: true }, (err) => {
             if (err)
                 logging.error(err);
         });
@@ -145,10 +159,10 @@ function accountSetup(userId, pin, token = null) {
  * @param {string} session
  * @returns
  */
-function validSession(userId, session) {
-    const path = env.sessionPath(userId);
+function validSession(user, session) {
+    const path = env.sessionPath(user);
 
-    if (!userId || !session)
+    if (!user || !session || !/\d{18}/.test(user))
         return false;
 
     if (fs.existsSync(path)) {
@@ -288,17 +302,15 @@ module.exports = {
                         else {
                             const whitelist = data.toString().split('\n');
 
-                            console.log(whitelist);
-
                             if (whitelist.includes(username)) {
                                 logging.info('User exists in whitelist.');
                                 logging.audit('User logging in from whitelist:', username);
 
                                 userIsCached(`${name}#${discriminator}`)
-                                    .then((userId) => {
-                                        if (userId) {
-                                            logging.debug('User is cached:', userId);
-                                            resolve({ id: userId });
+                                    .then((user) => {
+                                        if (user) {
+                                            logging.debug('User is cached:', user);
+                                            resolve(user);
                                         }
                                         else {
                                             logging.debug('User is not cached.');

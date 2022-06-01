@@ -112,12 +112,8 @@ const logging = {
     },
     audit(...args) {
         const logFile = new Date().toISOString().split('T')[0] + '.log';
-        const logPath = env.datapath + '/logs';
 
-        if (!fs.existsSync(logPath))
-            fs.mkdirSync(logPath, { recursive: true });
-
-        fs.appendFile(logPath + '/' + logFile, `${formatAudit(tags.audit, ...args).join(' ')}\n`, (err) => {
+        fs.appendFile(env.logpath + '/' + logFile, `${formatAudit(tags.audit, ...args).join(' ')}\n`, (err) => {
             if (err) {
                 logging.error('Failed to append line to audit log:');
                 logging.info(...args);

@@ -14,10 +14,14 @@ then
     mkdir $RELEASE_PATH
 fi
 
+if [ -e $RELEASE_PATH.zip ]
+then
+    rm $RELEASE_PATH.zip
+fi
+
 yarn build && cp -r watchcat/build $RELEASE_PATH/build
 
 cp -r src $RELEASE_PATH
-cp -r src/documentation $RELEASE_PATH
 cp index.js $RELEASE_PATH
 cp package.json $RELEASE_PATH
 cp .env $RELEASE_PATH
@@ -30,8 +34,10 @@ rm $RELEASE_PATH/bot/config/config.json
 
 # Compose export zip
 
-zip -r "$RELEASE_PATH.zip" $RELEASE_NAME
-rm -r $RELEASE_PATH
+cd releases
+zip -rq "$RELEASE_NAME.zip" $RELEASE_NAME
+rm -r $RELEASE_NAME
+cd ..
 
 # Write the installer script
 

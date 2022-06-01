@@ -1,4 +1,5 @@
 const upload = require('multer')();
+const zip = require('./handlers/zip');
 const ftp = require('./handlers/ftp');
 const auth = require('./handlers/auth');
 const server = require('./handlers/server');
@@ -6,11 +7,10 @@ const logging = require('./logging/logging');
 const routing = require('./handlers/routing');
 const profiles = require('./handlers/profiles');
 
-const { exec } = require('child_process');
 const { mcServer } = require('./server');
+const { exec } = require('child_process');
+const { minecraftPath, staticFile } = require('../env');
 const { readFile, existsSync, mkdirSync, writeFile } = require('fs');
-const { web, minecraftPath } = require('../env');
-const zip = require('./handlers/zip');
 
 /**
  *
@@ -191,7 +191,7 @@ const get = [
     },
     {
         path: '/feature-flags.json',
-        fn: (req, res) => res.sendFile(web + '/feature-flags.json')
+        fn: (req, res) => res.sendFile(staticFile('feature-flags.json'))
     },
     {
         path: '/profiles/list',

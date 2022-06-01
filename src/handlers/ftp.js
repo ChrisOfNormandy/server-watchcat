@@ -43,6 +43,11 @@ module.exports = {
                     ? root
                     : `${root}/${dir.replace(/\*/g, '/')}`;
 
+                const dirPath = path.dirname(`${p}/${req.file.originalname}`);
+
+                if (!fs.existsSync(dirPath))
+                    fs.mkdirSync(dirPath, { recursive: true });
+
                 fs.writeFile(`${p}/${req.file.originalname}`, req.file.buffer, (err) => {
                     if (err) {
                         logging.error(err);

@@ -11,12 +11,15 @@ const { mcServer } = require('./src/server');
 const { init } = require('./src/handlers/auth');
 
 const endpoints = require('./src/endpoints');
+const profiles = require('./src/handlers/profiles');
+const cli = require('./src/server/cli');
 
 /**
  *
  */
 function startHttpServer() {
     init();
+    profiles.init();
 
     const app = express();
     const httpServer = createServer(app);
@@ -30,7 +33,7 @@ function startHttpServer() {
     app.use(cors());
     app.options('*', cors());
 
-    app.use(express.static(env.web, { index: false }));
+    app.use(express.static(env.webPath(), { index: false }));
 
     endpoints.get.forEach((endpoint) => app.get(endpoint.path, endpoint.fn));
 
@@ -43,7 +46,9 @@ function startHttpServer() {
 
     httpServer.listen(env.port, () => {
         logging.info('Server started on:', env.port);
-        logging.debug(env.web, env.twoFA);
+        logging.debug(env.webPath(), env.twoFA);
+
+        cli();
     });
 }
 
