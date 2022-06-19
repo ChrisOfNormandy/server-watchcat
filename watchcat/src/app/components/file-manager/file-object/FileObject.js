@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
-import { sendForm } from '../../helpers/net-handler';
-import toasts from '../../helpers/toasts';
-import modalManager from '../../views/ModalManager';
-import jsonEditor from './editors/json';
-import propertiesEditor from './editors/properties';
-import tomlEditor from './editors/toml';
-import { downloadFile } from './helpers';
+import { sendForm } from '../../../helpers/net-handler';
+import toasts from '../../../helpers/toasts';
+import modalManager from '../../../views/ModalManager';
+import jsonEditor from '../editors/json';
+import propertiesEditor from '../editors/properties';
+import tomlEditor from '../editors/toml';
+import { downloadFile } from '../helpers';
 
 import './styles/file-object.css';
 
@@ -41,21 +41,22 @@ const downloadAsText = new RegExp(
  * @param {*} param0
  * @returns
  */
-export default function FileObj(
+export default function FileObject(
     {
         file,
         path,
         ext,
         getFile,
         deleteFile,
-        renameFile
+        renameFile,
+        setFileView
     }
 ) {
-    const id = `${file}_modal`;
+    const id = `${file.name}_modal`;
 
     const filePath = path === ''
-        ? file
-        : path + '*' + file;
+        ? file.name
+        : path + '*' + file.name;
 
     const getBody = (fileData) => {
         if (fileData !== null) {
@@ -69,10 +70,10 @@ export default function FileObj(
                         ? 'home'
                         : path;
 
-                    sendForm(`/upload/${uploadPath}`, new File([fields.content], file, { type: fileData.file.type }))
+                    sendForm(`/upload/${uploadPath}`, new File([fields.content], file.name, { type: fileData.file.type }))
                         .then((response) => response.text())
                         .then(() => {
-                            toasts.success(`Uploaded ${file}.`);
+                            toasts.success(`Uploaded ${file.name}.`);
                         })
                         .catch((err) => console.error(err));
                 };
@@ -117,10 +118,10 @@ export default function FileObj(
                         ? 'home'
                         : path;
 
-                    sendForm(`/upload/${uploadPath}`, new File([data], file, { type: fileData.file.type }))
+                    sendForm(`/upload/${uploadPath}`, new File([data], file.name, { type: fileData.file.type }))
                         .then((response) => response.text())
                         .then(() => {
-                            toasts.success(`Uploaded ${file}.`);
+                            toasts.success(`Uploaded ${file.name}.`);
                         })
                         .catch((err) => console.error(err));
                 };
@@ -146,7 +147,7 @@ export default function FileObj(
                 filename: path.replace(/\*/, '/') + '/' + fields.filename
             };
 
-            renameFile(path + '*' + file, body);
+            renameFile(path + '*' + file.name, body);
         };
 
         const download = (e) => {
@@ -155,7 +156,7 @@ export default function FileObj(
             if (fileData.file)
                 downloadFile(new File([fileData.file], fileData.name));
             else {
-                getFile(file)
+                getFile(file.name)
                     .then((fd) => downloadFile(new File([fd.file], fd.name)))
                     .catch((err) => {
                         console.error(err);
@@ -173,7 +174,7 @@ export default function FileObj(
                     name='filename'
                     type='text'
                     className='input'
-                    defaultValue={file}
+                    defaultValue={file.name}
                 />
 
                 <button
@@ -185,7 +186,9 @@ export default function FileObj(
             </div>
         </form>;
 
-        const footer = <>
+        const footer = <div
+            className='file-viewer-footer'
+        >
             <button
                 className='btn primary'
                 onClick={download}
@@ -199,7 +202,7 @@ export default function FileObj(
                 onClick={
                     () => {
                         deleteFile(filePath);
-                        modalManager.close(file + '_modal');
+                        modalManager.close(file.name + '_modal');
                     }
                 }
             >
@@ -207,21 +210,29 @@ export default function FileObj(
                     className='icon bi bi-trash'
                 />
             </button>
+        </div>;
+
+        const body = <>
+            {renameSect}
+            {getBody(fileData)}
+            {footer}
         </>;
 
-        modalManager.create(file + '_modal', null)
-            .setTitle(file)
-            .addSection(
-                renameSect,
-                getBody(fileData)
-            )
-            .setFooter(footer)
-            .build();
+        setFileView(body);
+
+        // modalManager.create(file + '_modal', null)
+        //     .setTitle(file)
+        //     .addSection(
+        //         renameSect,
+        //         getBody(fileData)
+        //     )
+        //     .setFooter(footer)
+        //     .build();
     };
 
     const drag = (e) => {
         document.getElementById('ftp_trash').classList.remove('hidden');
-        e.dataTransfer.setData('text', JSON.stringify({ file: path.replace(/\*/g, '/') + '/' + file }));
+        e.dataTransfer.setData('text', JSON.stringify({ file: path.replace(/\*/g, '/') + '/' + file.name }));
     };
 
     const dragEnd = () => {
@@ -229,33 +240,56 @@ export default function FileObj(
     };
 
     const openFile = () => {
-        if (downloadAsText.test(extname(file)))
-            getFile(file)
+        if (downloadAsText.test(extname(file.name)) && file.size < 10 * 1024 * 1024)
+            getFile(file.name)
                 .then((fileData) => getModal(fileData))
                 .catch((err) => console.error(err));
         else
-            getModal({ name: file });
+            getModal({ name: file.name });
     };
 
-    return (
-        <>
+    const getSize = () => {
+        const sizes = ['b', 'kb', 'mb', 'gb', 'tb'];
+
+        let v = file.size;
+        let i = 0;
+        while (v > 1024 && i < sizes.length) {
+            v /= 1024;
+            i++;
+        }
+
+        return i > 0
+            ? `${v.toFixed(2)} ${sizes[i]}`
+            : `${v} ${sizes[i]}`;
+    };
+
+    return <>
+        <div
+            className='file'
+            data-tip={`Click to view as ${ext}`}
+            data-for={`${id}_tooltip`}
+            onClick={openFile}
+            draggable
+            onDragStart={drag}
+            onDragEnd={dragEnd}
+        >
             <span
-                className='file-name file'
-                data-tip={`Click to view as ${ext}`}
-                data-for={`${id}_tooltip`}
-                onClick={openFile}
-                draggable
-                onDragStart={drag}
-                onDragEnd={dragEnd}
+                className='file-name'
             >
-                {file}
+                {file.name}
             </span>
 
-            <ReactTooltip
-                id={`${id}_tooltip`}
-                delayShow={500}
-                place='left'
-            />
-        </>
-    );
+            <span
+                className='file-desc'
+            >
+                {getSize()}
+            </span>
+        </div>
+
+        <ReactTooltip
+            id={`${id}_tooltip`}
+            delayShow={500}
+            place='left'
+        />
+    </>;
 }

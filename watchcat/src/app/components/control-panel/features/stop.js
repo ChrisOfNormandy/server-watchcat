@@ -4,8 +4,10 @@ import { post } from '../../../helpers/net-handler';
  *
  */
 export default function stop() {
-    post('/stop')
-        .then((response) => response.text())
-        .then((data) => console.log(data))
-        .catch((err) => console.error(err));
+    return new Promise((resolve, reject) => {
+        post('/stop')
+            .then((response) => response.text())
+            .then(resolve)
+            .catch(reject);
+    });
 }

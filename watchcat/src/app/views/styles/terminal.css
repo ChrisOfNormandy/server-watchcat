@@ -1,17 +1,6 @@
-.terminal-container {
+.terminal-wrapper {
   display: flex;
   flex-direction: column;
-
-  width: 800px;
-  min-width: 500px;
-  max-width: 1500px;
-  height: 500px;
-  min-height: 300px;
-  max-height: 1500px;
-
-  resize: both;
-
-  overflow: auto;
 
   padding: 8px;
 
@@ -19,7 +8,24 @@
   border-radius: 10px;
   background-color: black;
 
+  overflow: auto;
+
+  width: 100%;
+}
+
+.terminal-container {
+  display: flex;
+  flex-direction: column;
+
   white-space: nowrap;
+
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+
+  overflow: auto;
+
+  height: 100%;
 }
 
 .terminal-controls {
@@ -29,19 +35,22 @@
   align-items: center;
 
   padding: 8px;
-
-  margin-top: 8px;
 }
 
 .terminal-input-row {
   display: flex;
   flex-direction: row;
+
   width: 100%;
 }
 
 .terminal-line {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
   width: fit-content;
-  padding: 2px;
+  padding: 4px 6px;
   color: white;
 }
 
@@ -65,10 +74,10 @@
   color: rgb(255, 88, 88);
 }
 
-.terminal-line.warn-bg {
+.terminal-line.bg.warn {
   background-color: rgba(230, 157, 0, 0.35);
 }
 
-.terminal-line.error-bg {
+.terminal-line.bg.error {
   background-color: rgba(255, 88, 88, 0.35);
 }

@@ -1,6 +1,6 @@
 import React from 'react';
-import FileObj from './FileObject';
-import FolderObj from './FolderObject';
+import FileObject from './file-object/FileObject';
+import FolderObject from './folder-object/FolderObject';
 import ReactTooltip from 'react-tooltip';
 import toasts from '../../helpers/toasts';
 
@@ -219,11 +219,13 @@ export default class FileManger extends React.Component {
                     files = [];
 
                 if (Array.isArray(list)) {
-                    list.forEach((file) => {
-                        if (file.match(/(\.\w+)/g))
-                            files.push(file);
+                    list.forEach((item) => {
+                        const { name } = item;
+
+                        if (name.match(/(\.\w+)/g))
+                            files.push(item);
                         else
-                            folders.push(file);
+                            folders.push(item);
                     });
                 }
 
@@ -342,7 +344,7 @@ export default class FileManger extends React.Component {
                 {
                     list.files.length
                         ? list.files.map((file, f) => {
-                            const ext = getExtention(file);
+                            const ext = getExtention(file.name);
 
                             return (
                                 <li
@@ -351,7 +353,7 @@ export default class FileManger extends React.Component {
                                 >
                                     {
                                         ext === null
-                                            ? <FolderObj
+                                            ? <FolderObject
                                                 file={file}
                                                 path={this.getCurrentPath()}
                                                 getFiles={this.getFiles}
@@ -359,18 +361,16 @@ export default class FileManger extends React.Component {
                                                 deleteFolder={this.deleteFolder}
                                                 renameFolder={this.renameFolder}
                                                 renameFile={this.renameFile}
-                                                openModal={this.openModal}
-                                                closeModal={this.closeModal}
+                                                setFileView={this.setFileView}
                                             />
-                                            : <FileObj
+                                            : <FileObject
                                                 file={file}
                                                 path={this.getCurrentPath()}
                                                 ext={ext}
                                                 getFile={this.getFile}
                                                 deleteFile={this.deleteFile}
                                                 renameFile={this.renameFile}
-                                                openModal={this.openModal}
-                                                closeModal={this.closeModal}
+                                                setFileView={this.setFileView}
                                             />
                                     }
                                 </li>
@@ -386,6 +386,12 @@ export default class FileManger extends React.Component {
                 }
             </ul>
         );
+    }
+
+    setFileView(comp) {
+        let state = this.state;
+        state.fileView = comp;
+        this.setState(state);
     }
 
     componentDidMount() {
@@ -505,9 +511,6 @@ export default class FileManger extends React.Component {
             e.preventDefault();
 
             const fileData = JSON.parse(e.dataTransfer.getData('text/plain'));
-            console.log(fileData);
-
-            console.log(e.target);
 
             if (fileData.dir)
                 this.deleteFolder(fileData.file.replace(/\//g, '*'));
@@ -520,16 +523,24 @@ export default class FileManger extends React.Component {
         };
 
         return this.state.files.has(this.state.currentDir)
-            ? <div
-                className='container'
-            >
+            ? <>
                 <div
                     className='file-manager-header'
                 >
                     <Breadcrumb />
                 </div>
 
-                {this.listDir(list)}
+                <div
+                    className='file-manager-body'
+                >
+                    {this.listDir(list)}
+
+                    <div
+                        className='file-viewer'
+                    >
+                        {this.state.fileView}
+                    </div>
+                </div>
 
                 <div
                     className='file-manager-footer'
@@ -555,21 +566,20 @@ export default class FileManger extends React.Component {
                         Refresh
                     </button>
                 </div>
-            </div>
+            </>
             : null;
     }
 
     constructor(props) {
         super(props);
 
-        this.openModal = props.openModal;
-        this.closeModal = props.closeModal;
-
         this.state = {
             parentDir: null,
             currentDir: null,
             files: new Map(),
-            fileData: null
+            fileData: null,
+
+            fileView: null
         };
 
         this.update = this.update.bind(this);
@@ -579,6 +589,7 @@ export default class FileManger extends React.Component {
         this.deleteFolder = this.deleteFolder.bind(this);
         this.updateParentDir = this.updateParentDir.bind(this);
 
+        this.setFileView = this.setFileView.bind(this);
         this.renameFile = this.renameFile.bind(this);
         this.renameFolder = this.renameFolder.bind(this);
     }

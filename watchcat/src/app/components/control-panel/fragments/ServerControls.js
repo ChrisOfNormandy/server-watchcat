@@ -1,33 +1,52 @@
 import React from 'react';
+import toasts from '../../../helpers/toasts';
+import modalManager from '../../../views/ModalManager';
+import socketHandler from '../../../views/socketHandler';
 
 import * as adapter from '../adapter';
 
 const server = adapter.default.features;
 
 /**
- * @typedef Props
- * @property {function()} connect
  *
- * @param {Props} param0
  * @returns
  */
-export default function ServerControls({ connect }) {
+export default function ServerControls() {
     const start = (e) => {
         e.preventDefault();
 
-        const fields = { profile: document.getElementById('profile_select').value };
+        const elem = document.getElementById('profile_select');
+        if (!elem)
+            toasts.info('You must create a profile before starting a server.');
+        else {
+            const fields = { profile: elem.value };
 
-        server.start(fields, connect);
+            server.start(fields);
+        }
     };
 
     const stop = (e) => {
         e.preventDefault();
-        server.stop();
+
+        const elem = document.getElementById('profile_select');
+
+        if (!elem)
+            toasts.info('You must create a profile before stopping a server.');
+        else
+            server.stop();
     };
 
     const restart = (e) => {
         e.preventDefault();
-        server.restart(Object.fromEntries(new FormData(e.target)), connect);
+
+        const elem = document.getElementById('profile_select');
+        if (!elem)
+            toasts.info('You must create a profile before starting a server.');
+        else {
+            const fields = { profile: elem.value };
+
+            server.restart(fields);
+        }
     };
 
     const send = (e) => {
@@ -37,7 +56,7 @@ export default function ServerControls({ connect }) {
 
     const reconnect = (e) => {
         e.preventDefault();
-        connect();
+        socketHandler.connect();
     };
 
     const backup = (e) => {
@@ -52,7 +71,39 @@ export default function ServerControls({ connect }) {
 
     const terminate = (e) => {
         e.preventDefault();
-        server.terminate();
+
+        const modal = <form
+            onSubmit={
+                (e) => {
+                    e.preventDefault();
+
+                    const fields = Object.fromEntries(new FormData(e.target));
+
+                    if (!fields.confirm)
+                        return false;
+
+                    server.terminate();
+
+                    modalManager.close('terminate_java');
+                }
+            }
+        >
+            <div>
+                Clicking confirm will kill all Java processes on the server. Are you sure you want to continue?
+            </div>
+
+            <label>Confirm</label>
+            <input
+                type='checkbox'
+                name='confirm'
+            />
+
+            <button>
+                Kill Java
+            </button>
+        </form>;
+
+        modalManager.create('terminate_java', modal).build();
     };
 
     const fields = [

@@ -1,0 +1,31 @@
+.folder:hover {
+  cursor: pointer;
+  background-color: rgb(75, 75, 75);
+  color: white;
+}
+
+.folder {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  width: 100%;
+}
+
+.folder span {
+  white-space: nowrap;
+  width: 100%;
+  padding: 5px;
+}
+
+.folder .folder-desc {
+  text-align: right;
+}
+
+.folder-row-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+
+  margin-left: 12px;
+}

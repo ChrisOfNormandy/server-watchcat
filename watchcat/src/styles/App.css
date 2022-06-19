@@ -15,3 +15,29 @@
 .hidden {
   display: none;
 }
+
+nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  background-color: black;
+  width: 95%;
+  padding: 8px;
+
+  margin-bottom: 10px;
+
+  border-radius: 10px;
+}
+
+nav .btn {
+  margin: 0 5px;
+}
+
+main {
+  width: 95%;
+  height: 90%;
+
+  overflow: hidden;
+}

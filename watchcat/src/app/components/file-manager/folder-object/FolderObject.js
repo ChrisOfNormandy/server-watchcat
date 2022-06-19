@@ -1,15 +1,17 @@
 import React from 'react';
 import ReactTooltip from 'react-tooltip';
-import { post } from '../../helpers/net-handler';
-import modalManager from '../../views/ModalManager';
-import { downloadFile } from './helpers';
+import { post } from '../../../helpers/net-handler';
+import modalManager from '../../../views/ModalManager';
+import { downloadFile } from '../helpers';
+
+import './styles/folder-object.css';
 
 /**
  *
  * @param {*} param0
  * @returns
  */
-export default function FolderObj(
+export default function FolderObject(
     {
         file,
         path,
@@ -17,21 +19,22 @@ export default function FolderObj(
         updateParentDir,
         deleteFolder,
         renameFile,
-        renameFolder
+        renameFolder,
+        setFileView
     }
 ) {
-    const id = `${file}_modal`;
+    const id = `${file.name}_modal`;
 
     const dirPath = path === ''
-        ? file
-        : path + '*' + file;
+        ? file.name
+        : path + '*' + file.name;
 
     const downloadAsZip = () => {
-        console.log('Download:', path, file);
+        console.log('Download:', path, file.name);
 
         post(`/files/zip/${dirPath}`)
             .then((response) => response.blob())
-            .then((blob) => downloadFile(new File([blob], file + '.zip')))
+            .then((blob) => downloadFile(new File([blob], file.name + '.zip')))
             .catch((err) => console.error(err));
     };
 
@@ -45,7 +48,7 @@ export default function FolderObj(
                 filename: path.replace(/\*/, '/') + '/' + fields.filename
             };
 
-            renameFolder(path + '*' + file, body);
+            renameFolder(path + '*' + file.name, body);
         };
 
         const renameSect = <form
@@ -58,7 +61,7 @@ export default function FolderObj(
                     name='filename'
                     type='text'
                     className='input'
-                    defaultValue={file}
+                    defaultValue={file.name}
                 />
 
                 <button
@@ -84,8 +87,8 @@ export default function FolderObj(
                 className='btn primary'
                 onClick={
                     () => {
-                        deleteFolder(file);
-                        modalManager.close(file + '_modal');
+                        deleteFolder(file.name);
+                        modalManager.close(file.name + '_modal');
                     }
                 }
             >
@@ -95,18 +98,25 @@ export default function FolderObj(
             </button>
         </>;
 
-        modalManager.create(file + '_modal', null)
-            .setTitle(file)
-            .addSection(
-                renameSect
-            )
-            .setFooter(footer)
-            .build();
+        const body = <>
+            {renameSect}
+            {footer}
+        </>;
+
+        setFileView(body);
+
+        // modalManager.create(file + '_modal', null)
+        //     .setTitle(file)
+        //     .addSection(
+        //         renameSect
+        //     )
+        //     .setFooter(footer)
+        //     .build();
     };
 
     const drag = (e) => {
         document.getElementById('ftp_trash').classList.remove('hidden');
-        e.dataTransfer.setData('text', JSON.stringify({ file: path.replace(/\*/g, '/') + '/' + file, dir: true }));
+        e.dataTransfer.setData('text', JSON.stringify({ file: path.replace(/\*/g, '/') + '/' + file.name, dir: true }));
     };
 
     const dragEnd = () => {
@@ -123,12 +133,9 @@ export default function FolderObj(
         e.preventDefault();
 
         const fileData = JSON.parse(e.dataTransfer.getData('text/plain'));
-        console.log(fileData);
-
-        console.log(e.target);
 
         const body = {
-            filename: path.replace(/\*/g, '/') + '/' + file + '/' + fileData.file.split('/').slice(-1)
+            filename: path.replace(/\*/g, '/') + '/' + file.name + '/' + fileData.file.split('/').slice(-1)
         };
 
         console.log(path + '*' + fileData.file, body);
@@ -142,31 +149,33 @@ export default function FolderObj(
 
     const openFolder = () => {
         updateParentDir();
-        getFiles(file);
+        getFiles(file.name);
     };
 
     const editFolder = () => {
         getModal();
     };
 
-    return (
-        <>
+    return <>
+        <div
+            className='folder'
+            data-tip='Click to expand'
+            data-for={`${id}_tooltip`}
+            draggable
+            onDragStart={drag}
+            onDragEnd={dragEnd}
+            onDragOver={dragOver}
+            onDrop={drop}
+            onClick={openFolder}
+        >
             <span
-                className='file-name folder'
-                data-tip='Click to expand'
-                data-for={`${id}_tooltip`}
-                draggable
-                onDragStart={drag}
-                onDragEnd={dragEnd}
-                onDragOver={dragOver}
-                onDrop={drop}
-                onClick={openFolder}
+                className='folder-name'
             >
-                {file}
+                {file.name}
             </span>
 
             <span
-                className='file-row-controls'
+                className='folder-row-controls'
             >
                 <button
                     className='btn primary'
@@ -177,12 +186,12 @@ export default function FolderObj(
                     <i className='icon bi bi-three-dots' />
                 </button>
             </span>
+        </div>
 
-            <ReactTooltip
-                id={`${id}_tooltip`}
-                delayShow={500}
-                place='left'
-            />
-        </>
-    );
+        <ReactTooltip
+            id={`${id}_tooltip`}
+            delayShow={500}
+            place='left'
+        />
+    </>;
 }

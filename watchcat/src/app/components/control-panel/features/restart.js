@@ -1,19 +1,19 @@
-import { post } from '../../../helpers/net-handler';
+import stop from './stop';
+import start from './start';
 
 /**
  *
- * @param {Object.<string, *>} jvmArgs
- * @param {function()} connect
+ * @param {Object.<string, *>} profile
+ * @returns
  */
-export default function restart(jvmArgs, connect) {
-    post('/stop')
-        .then(() => {
-            console.debug('Using JVM:', jvmArgs);
-
-            post('/start', jvmArgs)
-                .then((response) => response.text())
-                .then(() => setTimeout(connect, 1000))
-                .catch((err) => console.error(err));
-        })
-        .catch((err) => console.error(err));
+export default function restart(profile) {
+    return new Promise((resolve, reject) => {
+        stop()
+            .then(() => {
+                start(profile)
+                    .then(resolve)
+                    .catch(reject);
+            })
+            .catch(reject);
+    });
 }

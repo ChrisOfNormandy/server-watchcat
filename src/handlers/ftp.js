@@ -79,8 +79,16 @@ module.exports = {
                         logging.error(err);
                         res.send(err);
                     }
-                    else
-                        res.send(files);
+                    else {
+                        res.send(files.map((file) => {
+                            const stats = fs.statSync(root + '/' + file);
+
+                            return {
+                                name: file,
+                                size: stats.size
+                            };
+                        }));
+                    }
                 });
             }
             else {
@@ -90,7 +98,14 @@ module.exports = {
                         res.send(err);
                     }
                     else
-                        res.send(files);
+                        res.send(files.map((file) => {
+                            const stats = fs.statSync(`${root}/${dir}/${file}`);
+
+                            return {
+                                name: file,
+                                size: stats.size
+                            };
+                        }));
                 });
             }
         }
