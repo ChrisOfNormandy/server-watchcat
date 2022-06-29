@@ -29,6 +29,9 @@ nav {
   margin-bottom: 10px;
 
   border-radius: 10px;
+
+  z-index: 555;
+  user-select: none;
 }
 
 nav .btn {

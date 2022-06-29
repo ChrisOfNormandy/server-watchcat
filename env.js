@@ -12,6 +12,8 @@ const ex = {
     logpath: home + '/.watchcat/logs',
     users: home + '/.watchcat/users',
     server_profiles: home + '/.watchcat/server_profiles',
+    whiteboard: home + '/.watchcat/whiteboard',
+
     twoFA: process.env.TWOFA_NAME,
     minecraft: process.env.SERVER_PATH,
     noValidate: process.env.NO_VALIDATE,
@@ -41,12 +43,26 @@ const ex = {
         const users = JSON.parse(data);
 
         for (let name in users) {
-            if (users[name].id === id) {
+            if (users[name].id === id)
                 return name;
-            }
         }
 
         return id;
+    },
+    getUserDataById(id) {
+        if (!fs.existsSync(ex.datapath + '/users.json'))
+            return null;
+
+        const data = fs.readFileSync(ex.datapath + '/users.json', 'utf-8');
+
+        const users = JSON.parse(data);
+
+        for (let name in users) {
+            if (users[name].id === id)
+                return users[name];
+        }
+
+        return null;
     },
     cacheUser(user, data) {
         console.log('Cache user:', user, data);

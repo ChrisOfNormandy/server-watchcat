@@ -1,7 +1,7 @@
 import React from 'react';
 import toasts from '../../../helpers/toasts';
 import modalManager from '../../../views/ModalManager';
-import socketHandler from '../../../views/socketHandler';
+import socketHandler from '../../../helpers/socketHandler';
 
 import * as adapter from '../adapter';
 

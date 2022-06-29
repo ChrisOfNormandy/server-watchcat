@@ -2,10 +2,11 @@ import React from 'react';
 import FTPView from './FTPView';
 import ConsoleView from './ConsoleView';
 import modalManager from './ModalManager';
-import socketHandler from './socketHandler';
+import socketHandler from '../helpers/socketHandler';
 
 import './styles/view.css';
 import './styles/terminal.css';
+import WhiteboardView from './WhiteboardView';
 
 export default class ServerView extends React.Component {
     openModal(id, modal) {
@@ -30,6 +31,7 @@ export default class ServerView extends React.Component {
 
         return <>
             <nav>
+                <span>Logged in as { }</span>
                 {
                     this.views.map((view, i) =>
                         <button
@@ -84,6 +86,11 @@ export default class ServerView extends React.Component {
                 header: 'Files',
                 accessor: 'ftp',
                 body: () => <FTPView />
+            },
+            {
+                header: 'Whiteboard',
+                accessor: 'whiteboard',
+                body: () => <WhiteboardView />
             }
         ];
 

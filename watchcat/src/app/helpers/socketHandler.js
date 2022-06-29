@@ -1,12 +1,15 @@
+import toasts from './toasts';
+
 import { io } from 'socket.io-client';
-import { domain } from '../helpers/net-handler';
-import toasts from '../helpers/toasts';
+import { domain } from './net-handler';
 
 const socketHandler = {
     /**
      * @type {import('socket.io-client').Socket}
      */
     socket: null,
+
+    user: null,
 
     addListener(channel, fn) {
         if (!this.socket)
@@ -16,6 +19,12 @@ const socketHandler = {
             this.socket.on(channel, fn);
         else
             console.debug('Socket already contains listener for channel:', channel);
+
+        return this.socket;
+    },
+
+    emit(channel, data) {
+        this.socket.emit(channel, data);
 
         return this.socket;
     },
@@ -63,7 +72,6 @@ const socketHandler = {
 
             this.addListener(logging[0], onLog);
         });
-
 
         return this.socket;
     }

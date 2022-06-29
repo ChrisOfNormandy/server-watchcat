@@ -6,11 +6,13 @@ const server = require('./handlers/server');
 const logging = require('./logging/logging');
 const routing = require('./handlers/routing');
 const profiles = require('./handlers/profiles');
+const whiteboard = require('./whiteboard/whiteboard');
 
 const { mcServer } = require('./server');
 const { exec } = require('child_process');
-const { minecraftPath, staticFile } = require('../env');
+const { minecraftPath, staticFile, getUserDataById } = require('../env');
 const { readFile, existsSync, mkdirSync, writeFile } = require('fs');
+const cookies = require('./handlers/cookies');
 
 /**
  *
@@ -183,7 +185,7 @@ const get = [
     },
     {
         path: '/status',
-        fn: (req, res) => res.send(mcServer.getStatus())
+        fn: (_, res) => res.send(mcServer.getStatus())
     },
     {
         path: '/',
@@ -191,15 +193,47 @@ const get = [
     },
     {
         path: '/feature-flags.json',
-        fn: (req, res) => res.sendFile(staticFile('feature-flags.json'))
+        fn: (_, res) => res.sendFile(staticFile('feature-flags.json'))
+    },
+    {
+        path: '/username',
+        fn: (req, res) => res.send({ username: getUserDataById(cookies.getAll(req).user).username })
     },
     {
         path: '/profiles/list',
         fn: profiles.listProfiles
+    },
+    {
+        path: '/whiteboard/get',
+        fn: (_, res) => {
+            whiteboard.getDrawData()
+                .then((data) => res.send(JSON.stringify(data)))
+                .catch((err) => res.send(err));
+        }
+    },
+    {
+        path: '/textures/:cursor',
+        fn: (req, res) => {
+            logging.debug(req.param.cursor);
+
+            res.sendFile(staticFile(`textures/${req.params.cursor}`));
+        }
+    }
+];
+
+const sockets = [
+    {
+        channel: 'whiteboard',
+        fn: whiteboard.addElementHandler
+    },
+    {
+        channel: 'whiteboard_tracking_update',
+        fn: whiteboard.updateTracking
     }
 ];
 
 module.exports = {
     post,
-    get
+    get,
+    sockets
 };

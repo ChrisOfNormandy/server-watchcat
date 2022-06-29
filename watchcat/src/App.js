@@ -1,5 +1,6 @@
 import React from 'react';
 import ServerView from './app/views/ServerView';
+import socketHandler from './app/helpers/socketHandler';
 
 import { ToastContainer } from 'react-toastify';
 import { getData } from './app/helpers/net-handler';
@@ -19,6 +20,12 @@ export default class App extends React.Component {
                 let state = this.state;
                 state.featureFlags = featureFlags;
                 this.setState(state);
+
+                getData('/username')
+                    .then((user) => {
+                        socketHandler.user = user.username;
+                    })
+                    .catch(console.error);
             })
             .catch(console.error);
     }
@@ -27,14 +34,13 @@ export default class App extends React.Component {
         if (window.location.pathname !== '/')
             window.location.href = window.location.origin;
 
-        return (
-            <div className='App'>
-                <ServerView
-                    featureFlags={this.state.featureFlags}
-                />
-                <ToastContainer />
-            </div>
-        );
+        return <div className='App'>
+            <ServerView
+                featureFlags={this.state.featureFlags}
+            />
+
+            <ToastContainer />
+        </div>;
     }
 
     constructor(props) {

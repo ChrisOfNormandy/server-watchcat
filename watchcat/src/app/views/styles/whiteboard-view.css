@@ -1,0 +1,43 @@
+.whiteboard {
+  position: absolute;
+  flex-direction: row;
+
+  left: 0;
+  top: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+.whiteboard-canvas {
+  background-color: white;
+}
+
+.whiteboard:hover {
+  cursor: none;
+}
+
+.whiteboard-brush-controls {
+  position: absolute;
+  right: 32px;
+  bottom: 32px;
+
+  list-style-type: none;
+
+  margin: 0;
+  padding: 12px;
+}
+
+.whiteboard-control {
+  padding: 2px;
+}
+
+.whiteboard-control .icon {
+  font-size: 24px;
+}
+
+.whiteboard-color-controls {
+  position: absolute;
+  left: 32px;
+  bottom: 32px;
+}

@@ -1,5 +1,5 @@
 import { post } from '../../../helpers/net-handler';
-import socketHandler from '../../../views/socketHandler';
+import socketHandler from '../../../helpers/socketHandler';
 /**
  *
  * @param {Object.<string, *>} profile

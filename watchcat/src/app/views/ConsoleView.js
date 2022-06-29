@@ -1,6 +1,6 @@
 import React from 'react';
 import toasts from '../helpers/toasts';
-import socketHandler from './socketHandler';
+import socketHandler from '../helpers/socketHandler';
 import ControlPanel from '../components/control-panel/ControlPanel';
 
 import { get, getData, post } from '../helpers/net-handler';

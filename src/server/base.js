@@ -6,8 +6,20 @@ class Connection {
         this.socket.emit('lsdata', data);
     }
 
+    /**
+     *
+     * @param {import('socket.io').Socket} socket
+     */
     constructor(socket) {
         this.socket = socket;
+
+        this.whiteboard = {
+            position: {
+                x: 0,
+                y: 0,
+                z: 0
+            }
+        };
     }
 }
 
