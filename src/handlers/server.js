@@ -1,5 +1,7 @@
 const logging = require('../logging/logging');
 
+const { getProfile } = require('./profiles');
+
 module.exports = {
     /**
      *
@@ -13,22 +15,32 @@ module.exports = {
             res.send(false);
         }
         else {
-            const jvmArgs = req.body;
+            const fields = req.body;
 
-            if (jvmArgs) {
-                mcServer.start(jvmArgs)
-                    .then((status) => {
-                        if (status !== null)
-                            logging.success(mcServer, 'Server started!');
-                        res.send(true);
+            logging.debug('Fields:', fields);
+
+            if (!fields.profile)
+                res.send(new Error('No selected profile.'));
+            else {
+                getProfile(fields.profile)
+                    .then((profile) => {
+                        logging.info('Profile:', profile);
+                        mcServer.start(profile)
+                            .then((status) => {
+                                if (status !== null)
+                                    logging.success(mcServer, 'Server started!');
+                                res.send(true);
+                            })
+                            .catch((err) => {
+                                logging.errorEmit(mcServer, err.message);
+                                res.send(err);
+                            });
                     })
                     .catch((err) => {
-                        logging.errorEmit(mcServer, err.message);
+                        logging.error(err);
                         res.send(err);
                     });
             }
-            else
-                res.send(new Error('No JVM arguments.'));
         }
     },
     /**

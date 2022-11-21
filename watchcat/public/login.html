@@ -7,7 +7,8 @@
     <meta name="theme-color" content="#000000" />
 
     <style>
-        html, body {
+        html,
+        body {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -100,6 +101,16 @@
             border-radius: 10px;
         }
 
+        .login-container {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .wall-of-text {
+            margin-left: 16px;
+            color: white;
+        }
+
         .status {
             text-align: center;
             color: red;
@@ -110,28 +121,32 @@
 </head>
 
 <body>
-    <form action="/login" method="post" class="container">
-        <div class="input-row">
-            <label class="input-label">Username</label>
-            <input type="text" name="username" class="input" pattern="[\w\s]+#\d{4}" placeholder="Username#1234" />
-        </div>
+    <div class="login-container">
+        <form action="/login" method="post" class="container">
+            <div class="input-row">
+                <label class="input-label">Username</label>
+                <input type="text" name="username" class="input" pattern="[\w\s]+#\d{4}" placeholder="Username#1234" />
+            </div>
 
-        <div class="input-row">
-            <label class="input-label">Pin</label>
-            <input type="password" name="pin" class="input" pattern="\d{8}" placeholder="8 digit pin" required
-                autocomplete="username" />
-        </div>
+            <div class="input-row">
+                <label class="input-label">Pin</label>
+                <input type="password" name="pin" class="input" pattern="\d{8}" placeholder="8 digit pin" required
+                    autocomplete="username" />
+            </div>
 
-        <div class="input-row">
-            <label class="input-label">2FA Token</label>
-            <input type="text" name="token" class="input" pattern="\d{6}" placeholder="2FA Token" required
-                autocomplete="current-password" />
-        </div>
+            <div class="input-row">
+                <label class="input-label">2FA Token</label>
+                <input type="text" name="token" class="input" pattern="\d{6}" placeholder="2FA Token" required
+                    autocomplete="current-password" />
+            </div>
 
-        <button type="submit" class="btn primary">
-            Log In
-        </button>
-    </form>
+            <button type="submit" class="btn primary">
+                Log In
+            </button>
+        </form>
+
+        <div id="wall_of_text" class="wall-of-text"></div>
+    </div>
 
     <div id="status" class="status"></div>
 
@@ -177,6 +192,18 @@
                 break;
             }
         }
+
+        const WOT = () => {
+            fetch('/wall-of-text')
+                .then((response) => response.text())
+                .then((text) => {
+                    console.log('Got wall of text.');
+                    document.getElementById('wall_of_text').innerText = text;
+                })
+                .catch((err) => console.error(err));
+        };
+
+        WOT();
     </script>
 </body>
 

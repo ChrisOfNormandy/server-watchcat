@@ -1,5 +1,5 @@
 [Unit]
-Description=Server Watchcat Web Interface
+Description=Server Watchcat Bot Service
 
 [Service]
 Environment=NODE_PORT=8001

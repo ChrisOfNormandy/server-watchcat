@@ -32,6 +32,10 @@
   text-align: center;
 }
 
+.input.left {
+  text-align: left;
+}
+
 .input[type='text'] {
   min-width: 100px;
 }

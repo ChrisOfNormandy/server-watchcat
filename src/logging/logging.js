@@ -1,3 +1,6 @@
+const fs = require('fs');
+const env = require('../../env');
+
 const format = {
     Reset: '\x1b[0m',
     Bright: '\x1b[1m',
@@ -30,7 +33,8 @@ const tags = {
     debug: `[ DEBUG ] ${format.BgGreen}$${format.Reset} `,
     info: `[  INFO ] ${format.BgBlue}$${format.Reset} `,
     warn: `[  WARN ] ${format.BgYellow}$${format.Reset} `,
-    error: `[ ERROR ] ${format.BgRed}$${format.Reset} `
+    error: `[ ERROR ] ${format.BgRed}$${format.Reset} `,
+    audit: '[ AUDIT ] '
 };
 
 const getStack = () => {
@@ -47,7 +51,19 @@ const formatOut = (tag, ...args) => {
     if (spacing < 1)
         spacing = 1;
 
-    return [`${tag}${msg}${' '.repeat(spacing)}| ${getStack()}`]
+    return [`${tag}[${new Date().toISOString().replace(/T/g, ' ').split('.')[0]}] ${msg}${' '.repeat(spacing)}| ${getStack()}`]
+        .concat(...args.filter((arg) => typeof arg === 'object'));
+};
+
+const formatAudit = (tag, ...args) => {
+    const msg = args.filter((arg) => typeof arg !== 'object').join(' ');
+
+    const len = Math.round(process.stdout.columns / 2);
+    let spacing = len - msg.length;
+    if (spacing < 1)
+        spacing = 1;
+
+    return [`${tag}[${new Date().toISOString().replace(/T/g, ' ').split('.')[0]}] ${msg}`]
         .concat(...args.filter((arg) => typeof arg === 'object'));
 };
 
@@ -93,6 +109,16 @@ const logging = {
         if (mcServer)
             mcServer.pushEmit('srverr', msg);
         logging.error(...args);
+    },
+    audit(...args) {
+        const logFile = new Date().toISOString().split('T')[0] + '.log';
+
+        fs.appendFile(env.logpath + '/' + logFile, `${formatAudit(tags.audit, ...args).join(' ')}\n`, (err) => {
+            if (err) {
+                logging.error('Failed to append line to audit log:');
+                logging.info(...args);
+            }
+        });
     }
 };
 

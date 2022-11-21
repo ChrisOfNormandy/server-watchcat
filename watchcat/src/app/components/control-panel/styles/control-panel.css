@@ -1,28 +1,20 @@
-.control-panel-container {
-  padding: 12px;
-  border: 1px solid white;
+.control-panel {
+  position: absolute;
+  right: 48px;
+  top: 16px;
+
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .control-list {
   display: flex;
   flex-direction: column;
+
   padding: 0;
 }
 
-.control-list .btn:not(:first-child) {
-  margin-top: 5px;
-}
-
-.jvm-argument-container {
-  display: flex;
-  flex-direction: column;
-
-  border: 1px solid white;
-  margin-top: 10px;
-  padding: 12px;
-}
-
-.jvm-argument-list {
-  padding: 0;
-  list-style: none;
+.control-list .btn {
+  margin: 5px 0;
 }

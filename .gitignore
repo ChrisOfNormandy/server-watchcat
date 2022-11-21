@@ -47,3 +47,4 @@ export
 yarn.lock
 bot/config/
 users/
+releases/

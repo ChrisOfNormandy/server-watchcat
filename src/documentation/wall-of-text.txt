@@ -1,0 +1,22 @@
+Steps for registering an account.
+
+1. Enter your Discord username + discriminator (like: MyDiscordAccount#1234) as your Username. 
+
+2. Obtain a PIN:
+- You must be in a Discord channel with the bot and have administrator permissions.
+- Send:   ~login
+- You will be given an 8 digit code by the bot. Copy that code and paste it in the "Pin" input.
+
+3. Enter 000000 (6 zeros) as your 2FA token.
+
+4. Click "Log In." You should see a QR code. Using a 2FA app like Google Authenticator for your phone, scan this QR code.
+
+5. Return to the login screen and re-enter your Username.
+
+6. For your PIN, provide your own, unique 8-digit pin (only numbers). This is basically your password.
+
+7. Using your authenticator app, take the 6-digit 2FA token and type it in the 2FA Token input.
+
+8. Click "Log In." You should be met with the login screen again with empty values. Resubmit the login process.
+
+9. That's it! You should have access to the web panel. If you do not, you can try resetting your account by sending ~reset in Discord.

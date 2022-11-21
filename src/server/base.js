@@ -6,8 +6,20 @@ class Connection {
         this.socket.emit('lsdata', data);
     }
 
+    /**
+     *
+     * @param {import('socket.io').Socket} socket
+     */
     constructor(socket) {
         this.socket = socket;
+
+        this.whiteboard = {
+            position: {
+                x: 0,
+                y: 0,
+                z: 0
+            }
+        };
     }
 }
 
@@ -27,9 +39,9 @@ class MinecraftServer {
         return this.history;
     }
 
-    start(jvmArgs) {
+    start(profile) {
         return new Promise((resolve, reject) => {
-            start(this, jvmArgs)
+            start(this, profile)
                 .then((serverProcess) => {
                     if (serverProcess !== null) {
                         this.server = serverProcess;
@@ -87,16 +99,21 @@ class MinecraftServer {
                         this.send('stop\n');
 
                         setTimeout(() => {
-                            if (this.server.stdin)
-                                this.server.stdin.pause();
+                            // In case the server dies before we kill it.
+                            if (!this.server)
+                                resolve(false);
+                            else {
+                                if (this.server.stdin)
+                                    this.server.stdin.pause();
 
-                            this.server.kill();
+                                this.server.kill();
 
-                            logging.info('Server stopped.');
+                                logging.info('Server stopped.');
 
-                            this.server = null;
+                                this.server = null;
 
-                            resolve(this.getStatus());
+                                resolve(this.getStatus());
+                            }
                         }, 5000);
                     }
                 }

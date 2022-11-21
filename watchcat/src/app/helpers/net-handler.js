@@ -14,8 +14,8 @@ export function post(endpoint, body = {}) {
                 ? body
                 : JSON.stringify(body), headers: { 'Content-Type': 'application/json' }
         })
-            .then((response) => resolve(response))
-            .catch((err) => reject(err));
+            .then(resolve)
+            .catch(reject);
     });
 }
 
@@ -30,8 +30,8 @@ export function sendFile(endpoint, file) {
         fetch(domain + endpoint, {
             method: 'POST', body: file, headers: { 'Content-Type': file.type }
         })
-            .then((response) => resolve(response))
-            .catch((err) => reject(err));
+            .then(resolve)
+            .catch(reject);
     });
 }
 
@@ -49,8 +49,8 @@ export function sendForm(endpoint, file) {
         fetch(domain + endpoint, {
             method: 'POST', body: form
         })
-            .then((response) => resolve(response))
-            .catch((err) => reject(err));
+            .then(resolve)
+            .catch(reject);
     });
 }
 
@@ -62,9 +62,25 @@ export function sendForm(endpoint, file) {
 export function get(endpoint) {
     return new Promise((resolve, reject) => {
         fetch(domain + endpoint, { method: 'GET' })
-            .then((response) => resolve(response))
-            .catch((err) => reject(err));
+            .then(resolve)
+            .catch(reject);
     });
 }
+
+/**
+ *
+ * @param {string} endpoint
+ * @returns
+ */
+export function getData(endpoint) {
+    return new Promise((resolve, reject) => {
+        get(endpoint)
+            .then((response) => response.json())
+            .then(resolve)
+            .catch(reject);
+    });
+}
+
+export const getCookie = (name) => document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || '';
 
 export { domain };

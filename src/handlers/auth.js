@@ -1,13 +1,13 @@
 const fs = require('fs');
 const axios = require('axios');
 const qr = require('qr-image');
+const env = require('../../env');
 const speakeasy = require('speakeasy');
 const logging = require('../logging/logging');
 
-const { goHome } = require('./routing');
 const { validate } = require('./validation');
 const { encrypt, decrypt } = require('../encryption');
-const { userPath, twoFA, users, userIsCached, cacheUser } = require('../../env');
+const { userPath, twoFA, users, logpath, userIsCached, cacheUser, getUserById, minecraftPath } = require('../../env');
 
 /**
  *
@@ -15,6 +15,20 @@ const { userPath, twoFA, users, userIsCached, cacheUser } = require('../../env')
 function init() {
     if (!fs.existsSync(users)) {
         fs.mkdir(users, { recursive: true }, (err) => {
+            if (err)
+                logging.error(err);
+        });
+    }
+
+    if (!fs.existsSync(minecraftPath())) {
+        fs.mkdir(minecraftPath(), { recursive: true }, (err) => {
+            if (err)
+                logging.error(err);
+        });
+    }
+
+    if (!fs.existsSync(logpath)) {
+        fs.mkdir(logpath, { recursive: true }, (err) => {
             if (err)
                 logging.error(err);
         });
@@ -125,6 +139,8 @@ function accountSetup(userId, pin, token = null) {
                     }
                     else {
                         logging.error('Invalid token.');
+                        logging.audit('Failed login validation:', getUserById(userId));
+
                         reject(new Error('invalid-token'));
                     }
                 }
@@ -137,8 +153,30 @@ function accountSetup(userId, pin, token = null) {
     });
 }
 
+/**
+ *
+ * @param {string} userId
+ * @param {string} session
+ * @returns
+ */
+function validSession(user, session) {
+    const path = env.sessionPath(user);
+
+    if (!user || !session || !/\d{18}/.test(user))
+        return false;
+
+    if (fs.existsSync(path)) {
+        const currentSession = fs.readFileSync(path, 'utf-8');
+
+        return currentSession === session;
+    }
+
+    return false;
+}
+
 module.exports = {
     init,
+    validSession,
     register(req, res) {
         const { guildId, channelId, userId } = req.body;
         const auth = getAuth();
@@ -151,6 +189,8 @@ module.exports = {
         }
 
         if (fs.existsSync(userPath(userId))) {
+            logging.audit(`Registering new user [${getUserById(userId)}] - file already exists.`);
+
             res.send('already-exists');
 
             return;
@@ -175,6 +215,7 @@ module.exports = {
                     res.send(err);
                 }
                 else {
+                    logging.audit('Created user file for:', getUserById(userId));
                     res.send({ guildId, channelId, userId, tempPin: user.tempPin });
                 }
             });
@@ -220,6 +261,8 @@ module.exports = {
                                 res.send(err);
                             }
                             else {
+                                logging.audit('Generated new 2FA URL for user:', getUserById(userId));
+
                                 res.setHeader('Content-Type', 'image/png');
                                 res.send(Buffer.concat(buffer));
                             }
@@ -240,11 +283,53 @@ module.exports = {
             .then((valid) => res.send({ valid }))
             .catch((err) => res.send(err));
     },
-    login(req, res) {
+    login(req, res, goHome) {
         const { username, pin, token } = req.body;
         const spl = username.split('#');
         const name = spl[0],
             discriminator = spl[1];
+
+        const checkWhitelist = () => {
+            return new Promise((resolve, reject) => {
+                if (fs.existsSync(env.datapath + '/whitelist.txt')) {
+                    logging.debug('Whitelist exists. Checking...');
+
+                    fs.readFile(env.datapath + '/whitelist.txt', (err, data) => {
+                        if (err) {
+                            logging.error('Failed to read whitelist file.');
+                            resolve(null);
+                        }
+                        else {
+                            const whitelist = data.toString().split('\n');
+
+                            if (whitelist.includes(username)) {
+                                logging.info('User exists in whitelist.');
+                                logging.audit('User logging in from whitelist:', username);
+
+                                userIsCached(`${name}#${discriminator}`)
+                                    .then((user) => {
+                                        if (user) {
+                                            logging.debug('User is cached:', user);
+                                            resolve(user);
+                                        }
+                                        else {
+                                            logging.debug('User is not cached.');
+                                            resolve(null);
+                                        }
+                                    })
+                                    .catch(reject);
+                            }
+                            else {
+                                logging.info('User does not exist in whitelist.');
+                                resolve(null);
+                            }
+                        }
+                    });
+                }
+                else
+                    resolve(null);
+            });
+        };
 
         const login = (user) => {
             logging.debug('Token is defined. Validating');
@@ -253,10 +338,14 @@ module.exports = {
                 .then((valid) => {
                     if (valid) {
                         logging.debug('Valid. Redirecting to home.');
+                        logging.audit('User login:', username);
+
                         goHome(user, res);
                     }
                     else {
                         logging.debug('Invalid login attempt:', user);
+                        logging.audit('Failed user login:', username);
+
                         res.redirect('/?status=invalid');
                     }
                 })
@@ -280,56 +369,72 @@ module.exports = {
                 });
         };
 
-        axios.default.get(`http://localhost:8001/user/id?username=${name}&discriminator=${discriminator}`, { responseType: 'json' })
-            .then((response) => {
-                const users = response.data;
-                const user = users[0];
+        const getUserFromBot = () => {
+            axios.default.get(`http://localhost:8001/user/id?username=${name}&discriminator=${discriminator}`, { responseType: 'json' })
+                .then((response) => {
+                    const users = response.data;
+                    const user = users[0];
 
-                // No user found. Have they run ~login or typed in chat?
-                if (!user) {
-                    logging.debug('Not cached on Discord.');
-                    res.redirect('/?status=discord');
-                }
-                else if (token === '000000') {
-                    logging.debug('Token reset?');
+                    // No user found. Have they run ~login or typed in chat?
+                    if (!user) {
+                        logging.debug('Not cached on Discord.');
+                        res.redirect('/?status=discord');
+                    }
+                    else if (token === '000000') {
+                        logging.debug('Token reset?');
 
-                    accountSetup(user.id, pin)
-                        .then((img) => {
-                            const page = `<img src="data:image/png;base64,${img.toString('base64')}" />`;
-                            res.send(page);
+                        accountSetup(user.id, pin)
+                            .then((img) => {
+                                logging.audit('Sending 2FA QR image for:', username);
+
+                                const page = `<img src="data:image/png;base64,${img.toString('base64')}" />`;
+                                res.send(page);
+                            })
+                            .catch((err) => {
+                                logging.error(err);
+                                res.redirect('/?status=' + err.message);
+                            });
+                    }
+                    else {
+                        cacheUser(`${name}#${discriminator}`, user)
+                            .then(() => {
+                                login(user);
+                            })
+                            .catch((err) => {
+                                logging.error(err);
+                                res.redirect('/?status=cache-failure');
+                            });
+                    }
+                })
+                .catch((err) => {
+                    logging.error('Failed to connect to bot:', err.message);
+
+                    userIsCached(`${name}#${discriminator}`)
+                        .then((user) => {
+                            if (user) {
+                                logging.debug('User is cached.');
+                                login(user);
+                            }
+                            else
+                                res.redirect('/?status=bot-failure');
                         })
                         .catch((err) => {
                             logging.error(err);
-                            res.redirect('/?status=' + err.message);
+                            res.redirect('/?status=bot-failure');
                         });
-                }
-                else {
-                    cacheUser(`${name}#${discriminator}`, user)
-                        .then(() => {
-                            login(user);
-                        })
-                        .catch((err) => {
-                            logging.error(err);
-                            res.redirect('/?status=cache-failure');
-                        });
-                }
+                });
+        };
+
+        checkWhitelist()
+            .then((user) => {
+                if (user !== null)
+                    goHome(user, res);
+                else
+                    getUserFromBot();
             })
             .catch((err) => {
                 logging.error(err);
-
-                userIsCached(`${name}#${discriminator}`)
-                    .then((user) => {
-                        if (user) {
-                            logging.debug('User is cached.');
-                            login(user);
-                        }
-                        else
-                            res.redirect('/?status=bot-failure');
-                    })
-                    .catch((err) => {
-                        logging.error(err);
-                        res.redirect('/?status=bot-failure');
-                    });
+                getUserFromBot();
             });
     }
 };

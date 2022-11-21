@@ -1,23 +1,31 @@
-.console-container {
+.terminal-wrapper {
+  display: flex;
+  flex-direction: column;
+
+  padding: 8px;
+
   border: 1px solid white;
-  padding: 12px;
-}
-
-.terminal-container {
-  width: 800px;
-  height: 500px;
-
-  resize: both;
+  border-radius: 10px;
+  background-color: black;
 
   overflow: auto;
 
-  padding: 6px;
+  width: 100%;
+}
 
-  border: 1px solid white;
-  background-color: black;
-  color: white;
+.terminal-container {
+  display: flex;
+  flex-direction: column;
 
   white-space: nowrap;
+
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+
+  overflow: auto;
+
+  height: 100%;
 }
 
 .terminal-controls {
@@ -32,12 +40,44 @@
 .terminal-input-row {
   display: flex;
   flex-direction: row;
+
   width: 100%;
 }
 
-.terminal-input {
-  width: 100%;
-  padding: 5px;
-  background-color: rgb(50, 50, 50);
+.terminal-line {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  width: fit-content;
+  padding: 4px 6px;
   color: white;
+}
+
+.terminal-line .bracket {
+  color: grey;
+}
+
+.terminal-line .timestamp {
+  color: rgb(0, 196, 163);
+}
+
+.terminal-line .warn {
+  color: orange;
+}
+
+.terminal-line .info {
+  color: rgb(149, 156, 255);
+}
+
+.terminal-line .error {
+  color: rgb(255, 88, 88);
+}
+
+.terminal-line.bg.warn {
+  background-color: rgba(230, 157, 0, 0.35);
+}
+
+.terminal-line.bg.error {
+  background-color: rgba(255, 88, 88, 0.35);
 }

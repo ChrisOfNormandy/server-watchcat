@@ -112,16 +112,48 @@ function modifyEula() {
 
 /**
  *
+ * @returns
+ */
+function modifyUserJvmArgs(profile) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(root + '/user_jvm_args.txt', (err, data) => {
+            if (err)
+                reject(err);
+            else {
+                logging.info('#'.repeat(process.stdout.columns));
+                logging.info('Updating user JVM args.');
+                logging.info('#'.repeat(process.stdout.columns));
+
+                let str = data.toString().replace('# -Xmx4G', `-Xmx${profile.start.jvm.memory}G`);
+
+                str += [
+                    '\n-XX:+UnlockExperimentalVMOptions',
+                    '-XX:+UseZGC'
+                ].join('\n');
+
+                fs.writeFile(root + '/user_jvm_args.txt', str, (err) => {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(true);
+                });
+            }
+        });
+    });
+}
+
+/**
+ *
  * @param {*} mcVersion
  * @param {*} forgeVersion
  * @returns
  */
-function renameForge(mcVersion, forgeVersion) {
+function renameForge(mcVersion, forgeVersion, jarName) {
     const forge = `${mcVersion}-${forgeVersion}`;
 
     return new Promise((resolve, reject) => {
         if (fs.existsSync(`${root}/forge-${forge}.jar`)) {
-            exec(`mv ${root}/forge-${forge}.jar ${root}/forge.jar`, (err) => {
+            exec(`mv ${root}/forge-${forge}.jar ${root}/${jarName}`, (err) => {
                 if (err)
                     reject(err);
                 else {
@@ -138,13 +170,42 @@ function renameForge(mcVersion, forgeVersion) {
  *
  * @returns {Promise<ChildProcessWithoutNullStreams>}
  */
-function runServer(args) {
-    logging.info('Starting server process.');
+function runServer(profile) {
+    const jar = root + '/' + profile.start.jar;
 
-    if (fs.existsSync(root + '/forge.jar')) {
+    if (fs.existsSync(jar)) {
+        logging.info('Starting server process:', jar);
+
         return new Promise((resolve, reject) => {
+            const ls = spawn('java', [...getJvmArgs(profile.start.jvm), '-jar', profile.start.jar, 'nogui'], { cwd: root });
 
-            const ls = spawn('java', [...getJvmArgs(args), '-jar', 'forge.jar', 'nogui'], { cwd: root });
+            ls.on('error', (err) => {
+                logging.error(err);
+                reject(err);
+            });
+
+            resolve(ls);
+        });
+    }
+
+    return Promise.resolve(null);
+}
+
+/**
+ *
+ * @param {*} profile
+ * @returns
+ */
+function runServerScript(profile) {
+    const script = root + '/run.sh';
+
+    if (fs.existsSync(script)) {
+        logging.info('Starting server process,', script);
+
+        return new Promise((resolve, reject) => {
+            logging.debug(script, ...getJvmArgs(profile.start.jvm), 'nogui');
+
+            const ls = spawn(script, ['nogui'], { cwd: root });
 
             ls.on('error', (err) => {
                 logging.error(err);
@@ -160,37 +221,49 @@ function runServer(args) {
 
 /**
  * @param {import('./base').MinecraftServer} mcServer
- * @param {Object.<string, *>} args
+ * @param {Object.<string, *>} profile
  * @returns {Promise<ChildProcessWithoutNullStreams>}
  */
-function start(mcServer, args) {
+function start(mcServer, profile) {
     if (mcServer.getStatus()) {
         logging.warnEmit(mcServer, 'Server is already running.');
 
         return Promise.reject(new Error('Server is already running.'));
     }
 
-    logging.info('Starting:', root);
+    logging.info('Starting:', root, profile.start.jar);
 
     if (!fs.existsSync(root))
         fs.mkdirSync(root, { recursive: true });
 
-    if (args.install === undefined && fs.existsSync(root + '/forge.jar')) {
-        return new Promise((resolve, reject) => {
-            runServer(args)
-                .then((ls) => {
-                    if (ls !== null)
-                        resolve(ls);
-                    else
-                        reject(new Error('Failed to start server.'));
-                })
-                .catch((err) => reject(err));
-        });
+    if (fs.existsSync(root + '/eula.txt')) {
+        if (fs.existsSync(root + '/' + profile.start.jar)) {
+            return new Promise((resolve, reject) => {
+                runServer(profile)
+                    .then((ls) => {
+                        if (ls !== null)
+                            resolve(ls);
+                        else
+                            reject(new Error('Failed to start server.'));
+                    })
+                    .catch((err) => reject(err));
+            });
+        }
+        else if (fs.existsSync(root + '/run.sh')) {
+            return new Promise((resolve, reject) => {
+                runServerScript(profile)
+                    .then((ls) => {
+                        if (ls !== null)
+                            resolve(ls);
+                        else
+                            reject(new Error('Failed to start server.'));
+                    })
+                    .catch((err) => reject(err));
+            });
+        }
     }
 
-    logging.info('Forge jar does not exist. Downloading installer.');
-
-    if (!args.version_minecraft || !args.version_forge)
+    if (!profile.install.version_minecraft || !profile.install.version_forge)
         return Promise.reject(new Error('Missing install arguments.'));
 
     return new Promise((resolve, reject) => {
@@ -202,33 +275,90 @@ function start(mcServer, args) {
             },
             () => {
                 logging.infoEmit(mcServer, 'Step 2 - updating folder structure.');
+                mcServer.pushEmit('ftpupdate', '');
 
-                return renameForge(args.version_minecraft, args.version_forge);
+                return renameForge(profile.install.version_minecraft, profile.install.version_forge, profile.start.jar);
             },
             () => {
                 logging.infoEmit(mcServer, 'Step 3 - generating initial server content.');
-
-                if (fs.existsSync(root + '/eula.txt'))
-                    return Promise.resolve(true);
+                mcServer.pushEmit('ftpupdate', '');
 
                 return new Promise((resolve, reject) => {
-                    runServer({ jvm_memory: 2 })
-                        .then((ls) => {
-                            if (ls !== null) {
-                                ls.on('close', () => {
-                                    resolve(true);
-                                });
-                            }
-                            else
-                                resolve(false);
-                        })
-                        .catch((err) => reject(err));
+                    if (
+                        fs.existsSync(root + '/' + profile.start.jar) &&
+                        !fs.existsSync(root + '/eula.txt')
+                    ) {
+                        runServer(profile)
+                            .then((ls) => {
+                                if (ls !== null) {
+                                    logging.debug('Waiting for close...');
+
+                                    ls.stdout.on('data', (data) => logging.debug(data.toString()));
+
+                                    ls.on('close', () => {
+                                        logging.debug('Closed');
+
+                                        mcServer.pushEmit('ftpupdate', '');
+                                        resolve(true);
+                                    });
+                                }
+                                else {
+                                    logging.warn('Result of running server jar was null.');
+                                    resolve(false);
+                                }
+                            })
+                            .catch((err) => reject(err));
+                    }
+                    else if (
+                        fs.existsSync(root + '/run.sh') &&
+                        (
+                            !fs.existsSync(root + '/eula.txt') ||
+                            !fs.existsSync(root + '/user_jvm_args.txt')
+                        )
+                    ) {
+                        runServerScript(profile)
+                            .then((ls) => {
+                                if (ls !== null) {
+                                    logging.debug('Waiting for close...');
+
+                                    ls.stdout.on('data', (data) => logging.debug(data.toString()));
+
+                                    ls.on('close', () => {
+                                        logging.debug('Closed');
+
+                                        mcServer.pushEmit('ftpupdate', '');
+                                        resolve(true);
+                                    });
+                                }
+                                else {
+                                    logging.warn('Result of running server script was null.');
+                                    resolve(false);
+                                }
+                            })
+                            .catch((err) => reject(err));
+                    }
+                    else {
+                        resolve(false);
+                    }
                 });
             },
             () => {
-                logging.infoEmit(mcServer, 'Step 4 - updating EULA.');
+                if (fs.existsSync(root + '/eula.txt')) {
+                    logging.infoEmit(mcServer, 'Step 4 - updating EULA.');
 
-                return modifyEula();
+                    return modifyEula();
+                }
+
+                return Promise.reject(new Error('Failed to find EULA file.'));
+            },
+            () => {
+                if (fs.existsSync(root + '/user_jvm_args.txt')) {
+                    logging.infoEmit(mcServer, 'Step 5 - updating user JVM args.');
+
+                    return modifyUserJvmArgs(profile);
+                }
+
+                return Promise.resolve(null);
             },
             () => {
                 logging.success(mcServer, 'Install complete!');
@@ -239,12 +369,13 @@ function start(mcServer, args) {
         if (!fs.existsSync(`${root}/installer.jar`)) {
             logging.info('Installer does not exist. Downloading...');
 
-            downloadInstaller(args.version_minecraft, args.version_forge)
+            downloadInstaller(profile.install.version_minecraft, profile.install.version_forge)
                 .then(() => steps[0]())
                 .then(() => steps[1]())
                 .then(() => steps[2]())
                 .then(() => steps[3]())
                 .then(() => steps[4]())
+                .then(() => steps[5]())
                 .catch((err) => reject(err));
         }
         else {
@@ -255,6 +386,7 @@ function start(mcServer, args) {
                 .then(() => steps[2]())
                 .then(() => steps[3]())
                 .then(() => steps[4]())
+                .then(() => steps[5]())
                 .catch((err) => reject(err));
         }
     });
