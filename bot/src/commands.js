@@ -5,6 +5,7 @@ const features = require('./features');
 const commands = [
     new Command(
         'accounts',
+        'login',
         features.login
     )
         .setRegex(/(login)/)
@@ -12,6 +13,7 @@ const commands = [
         .setAdminOnly(),
     new Command(
         'accounts',
+        'reset',
         features.reset
     )
         .setRegex(/(reset)/)

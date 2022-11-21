@@ -1,20 +1,19 @@
 {
     "name": "server-watchcat-bot",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Watchcat Bot",
     "main": "bot.js",
     "author": "ChrisOfNormandy",
     "dependencies": {
-        "@chrisofnormandy/mariwoah-bot": "^0.1.5",
-        "axios": "^0.26.1",
+        "@chrisofnormandy/mariwoah-bot": "^0.3.6",
+        "axios": "^1.1.3",
         "cors": "^2.8.5",
-        "discord.js": "^13.6.0",
-        "dotenv": "^16.0.0",
-        "express": "^4.17.3",
+        "dotenv": "^16.0.3",
+        "express": "^4.18.2",
         "qr-image": "^3.2.0"
     },
     "scripts": {
-        "start": "nodemon bot.js"
+        "start": "node bot.js"
     },
     "repository": {},
     "private": true,

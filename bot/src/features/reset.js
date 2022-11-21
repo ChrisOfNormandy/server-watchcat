@@ -1,20 +1,25 @@
 const os = require('os');
 const fs = require('fs');
+
 const { Output } = require('@chrisofnormandy/mariwoah-bot');
 
-module.exports = (message, data) => {
+/**
+ * 
+ * @param {import('@chrisofnormandy/mariwoah-bot').MessageData} data 
+ * @returns 
+ */
+module.exports = (data) => {
     if (!data.arguments.length) {
-        return new Promise((resolve) => {
-            const path = `${os.homedir}/.watchcat/users/${message.author.id}`;
+        const path = `${os.homedir}/.watchcat/users/${data.message.author.id}`;
 
-            if (fs.existsSync(path + '.user'))
-                fs.rmSync(path + '.user');
-            if (fs.existsSync(path + '.session'))
-                fs.rmSync(path + '.session');
+        if (fs.existsSync(path + '.user'))
+            fs.rmSync(path + '.user');
 
-            resolve(new Output('Done.'));
-        });
+        if (fs.existsSync(path + '.session'))
+            fs.rmSync(path + '.session');
+
+        return new Output('Done.').resolve();
     }
 
-    return Promise.resolve(new Output());
+    return new Output('You only need the command. No arguments ;)').resolve();
 };

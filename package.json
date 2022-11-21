@@ -1,16 +1,13 @@
 {
     "name": "server-watchcat",
-    "version": "1.0.0",
+    "version": "1.4.0",
     "description": "Server Utility",
     "main": "index.js",
     "author": "ChrisOfNormandy",
     "dependencies": {
-        "@chrisofnormandy/mariwoah-bot": "^0.1.5",
-        "axios": "^0.26.1",
         "bootstrap-icons": "^1.8.1",
         "cookie-parser": "^1.4.6",
         "cors": "^2.8.5",
-        "discord.js": "^13.6.0",
         "dotenv": "^16.0.0",
         "express": "^4.17.3",
         "multer": "^1.4.4",
