@@ -16,8 +16,8 @@ const cookies = require('./handlers/cookies');
 
 /**
  *
- * @param {*} _
- * @param {*} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 function status(_, res) {
     logging.infoEmit(mcServer, 'Running:', mcServer.getStatus());
@@ -26,10 +26,10 @@ function status(_, res) {
 
 /**
  *
- * @param {*} _
- * @param {*} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
-function backup(_, res) {
+function backup(req, res) {
     const path = minecraftPath();
 
     if (!existsSync(path + '/backups'))
@@ -58,8 +58,8 @@ function backup(_, res) {
 
 /**
  *
- * @param {*} req
- * @param {*} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 function send(req, res) {
     if (mcServer.getStatus())
@@ -79,10 +79,10 @@ function getDocumentation(file) {
 
 /**
  *
- * @param {*} _
- * @param {*} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
-function getLoginSplash(_, res) {
+function getLoginSplash(req, res) {
     readFile(getDocumentation('wall-of-text.txt'), (err, data) => {
         if (err) {
             logging.error(err);
@@ -95,10 +95,10 @@ function getLoginSplash(_, res) {
 
 /**
  *
- * @param {*} _
- * @param {*} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
-function reset(_, res) {
+function reset(req, res) {
     exec('pkill java', (err, stdout) => {
         if (err)
             logging.error(err);
@@ -205,7 +205,12 @@ const get = [
     },
     {
         path: '/whiteboard/get',
-        fn: (_, res) => {
+        /**
+         *
+         * @param {import('express').Request} req
+         * @param {import('express').Response} res
+         */
+        fn: (req, res) => {
             whiteboard.getDrawData()
                 .then((data) => res.send(JSON.stringify(data)))
                 .catch((err) => res.send(err));
@@ -213,6 +218,11 @@ const get = [
     },
     {
         path: '/textures/:cursor',
+        /**
+         *
+         * @param {import('express').Request} req
+         * @param {import('express').Response} res
+         */
         fn: (req, res) => {
             logging.debug(req.param.cursor);
 

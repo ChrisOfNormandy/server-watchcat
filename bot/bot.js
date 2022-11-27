@@ -5,7 +5,9 @@ const express = require('express');
 const commands = require('./src/commands');
 const config = require('./config/config.json');
 
-const { Bot } = require('@chrisofnormandy/mariwoah-bot');
+require('dotenv').config();
+
+const { Bot, Discord } = require('@chrisofnormandy/mariwoah-bot');
 
 const app = express();
 

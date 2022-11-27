@@ -6,9 +6,9 @@ const { decrypt } = require('../encryption');
 
 /**
  *
- * @param {*} userId
- * @param {*} pin
- * @param {*} token
+ * @param {string} userId
+ * @param {string} pin
+ * @param {string} token
  * @returns {Promise<boolean>}
  */
 function validate(userId, pin, token) {

@@ -6,8 +6,8 @@ import toasts from '../../helpers/toasts';
 
 import { get, post, sendForm } from '../../helpers/net-handler';
 
-import './styles/shared.css';
-import './styles/file-manager.css';
+import './styles/shared.scss';
+import './styles/file-manager.scss';
 
 const cannotEdit = /(\.dat)/;
 

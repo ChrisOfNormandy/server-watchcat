@@ -1,8 +1,8 @@
-import './root.css';
-import './themes/darkmode.css';
+import './root.scss';
+import './themes/darkmode.scss';
 
-import './buttons.css';
-import './inputs.css';
+import './buttons.scss';
+import './inputs.scss';
 
-import './index.css';
-import './App.css';
+import './index.scss';
+import './App.scss';

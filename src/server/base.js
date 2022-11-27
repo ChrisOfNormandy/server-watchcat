@@ -1,7 +1,12 @@
-const logging = require('../logging/logging');
 const start = require('./start');
+const logging = require('../logging/logging');
 
 class Connection {
+
+    /**
+     * 
+     * @param {*} data 
+     */
     send(data) {
         this.socket.emit('lsdata', data);
     }
@@ -24,12 +29,22 @@ class Connection {
 }
 
 class MinecraftServer {
+
+    /**
+     * 
+     * @returns 
+     */
     getStatus() {
         return this.server
             ? !this.server.killed
             : false;
     }
 
+    /**
+     * 
+     * @param {*} data 
+     * @returns 
+     */
     pushHistory(data) {
         this.history.push(data);
 
@@ -39,7 +54,14 @@ class MinecraftServer {
         return this.history;
     }
 
+    /**
+     * 
+     * @param {import('../../typedef').Profile} profile 
+     * @returns {Promise<import('child_process').ChildProcessWithoutNullStreams>}
+     */
     start(profile) {
+        this.profile = profile;
+
         return new Promise((resolve, reject) => {
             start(this, profile)
                 .then((serverProcess) => {
@@ -66,10 +88,15 @@ class MinecraftServer {
                         resolve(null);
                     }
                 })
-                .catch((err) => reject(err));
+                .catch(reject);
         });
     }
 
+    /**
+     * 
+     * @param {string} msg 
+     * @returns 
+     */
     send(msg) {
         if (this.getStatus()) {
             try {
@@ -80,37 +107,51 @@ class MinecraftServer {
             catch (err) {
                 logging.error(err);
 
-                return err;
+                return false;
             }
         }
 
         return false;
     }
 
+    /**
+     * 
+     * @returns {Promise<boolean>}
+     */
     kill() {
         if (this.getStatus) {
             logging.info('Stopping server...');
 
             return new Promise((resolve, reject) => {
                 try {
-                    if (!this.server)
+                    if (!this.server) {
+                        logging.info('Server already stopped.');
+
+                        this.server = null; // Make sure it's fully reset.
+                        this.profile = null;
+
                         resolve(this.getStatus());
+                    }
                     else {
                         this.send('stop\n');
 
                         setTimeout(() => {
                             // In case the server dies before we kill it.
-                            if (!this.server)
+                            if (!this.server) {
+                                logging.info("Server stopped (before kill attempt).")
+
                                 resolve(false);
+                            }
                             else {
                                 if (this.server.stdin)
                                     this.server.stdin.pause();
 
                                 this.server.kill();
 
-                                logging.info('Server stopped.');
+                                logging.info('Server stopped (killed).');
 
                                 this.server = null;
+                                this.profile = null;
 
                                 resolve(this.getStatus());
                             }
@@ -126,6 +167,11 @@ class MinecraftServer {
         return Promise.resolve(false);
     }
 
+    /**
+     * 
+     * @param {import('socket.io').Socket} socket 
+     * @returns 
+     */
     addConnection(socket) {
         const con = new Connection(socket);
 
@@ -148,13 +194,26 @@ class MinecraftServer {
         return con;
     }
 
+    /**
+     * 
+     * @param {string} channel 
+     * @param {*} data 
+     */
     pushEmit(channel, data) {
         this.connections.forEach((con) => con.socket.emit(channel, data));
     }
 
     constructor() {
+        /**
+         * @type {import('child_process').ChildProcessWithoutNullStreams}
+         */
         this.server = null;
         this.history = [];
+
+        /**
+         * @type {import('../../typedef').Profile}
+         */
+        this.profile = null;
 
         /**
          * @type {Map<string, Connection>}

@@ -1,6 +1,6 @@
 /**
  *
- * @param {*} req
+ * @param {import('express').Request} req
  * @returns {Object.<string, string>}
  */
 function getAll(req) {

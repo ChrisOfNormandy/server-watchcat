@@ -4,8 +4,8 @@ import ConsoleView from './ConsoleView';
 import modalManager from './ModalManager';
 import socketHandler from '../helpers/socketHandler';
 
-import './styles/view.css';
-import './styles/terminal.css';
+import './styles/view.scss';
+import './styles/terminal.scss';
 import WhiteboardView from './WhiteboardView';
 
 export default class ServerView extends React.Component {

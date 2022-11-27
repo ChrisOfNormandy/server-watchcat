@@ -5,8 +5,8 @@ const { getProfile } = require('./profiles');
 module.exports = {
     /**
      *
-     * @param {*} req
-     * @param {*} res
+     * @param {import('express').Request} req
+     * @param {import('express').Response} res
      * @param {import('../server/base').MinecraftServer} mcServer
      */
     start(req, res, mcServer) {
@@ -25,19 +25,23 @@ module.exports = {
                 getProfile(fields.profile)
                     .then((profile) => {
                         logging.info('Profile:', profile);
+
                         mcServer.start(profile)
                             .then((status) => {
                                 if (status !== null)
                                     logging.success(mcServer, 'Server started!');
+
                                 res.send(true);
                             })
                             .catch((err) => {
                                 logging.errorEmit(mcServer, err.message);
+
                                 res.send(err);
                             });
                     })
                     .catch((err) => {
                         logging.error(err);
+
                         res.send(err);
                     });
             }

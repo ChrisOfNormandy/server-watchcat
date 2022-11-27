@@ -1,0 +1,26 @@
+.ribbon {
+    position: relative;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    flex: auto;
+
+    .menu {
+        position: absolute;
+        
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .menu-item {
+        padding: 4px 8px;
+    }
+}

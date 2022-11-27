@@ -33,6 +33,11 @@ function validate(req) {
 
 module.exports = {
     upload: {
+        /**
+         *
+         * @param {import('express').Request} req
+         * @param {import('express').Response} res
+         */
         file(req, res) {
             if (validate(req)) {
                 const username = getUserById(cookies.getAll(req).user);
@@ -67,6 +72,11 @@ module.exports = {
                 res.send(false);
         }
     },
+    /**
+     *
+     * @param {import('express').Request} req
+     * @param {import('express').Response} res
+     */
     fetch(req, res) {
         if (validate(req)) {
             const dir = req.params.dir.replace(/\*/g, '/');

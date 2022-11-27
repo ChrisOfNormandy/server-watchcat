@@ -6,11 +6,11 @@ const logging = require('../logging/logging');
 const { spawn } = require('child_process');
 const { minecraftPath } = require('../../env');
 
-const memory = 8;
+const memory = 16;
 
 /**
  *
- * @param {*} args
+ * @param {import('../../typedef').JVMArguments} args
  * @returns
  */
 function getJvmArgs(args) {
@@ -33,13 +33,19 @@ function getJvmArgs(args) {
 
 const root = minecraftPath();
 
+/**
+ * 
+ * @param {string} mcVersion 
+ * @param {string} forgeVersion 
+ * @returns 
+ */
 const getForgeURL = (mcVersion, forgeVersion) =>
     `https://maven.minecraftforge.net/net/minecraftforge/forge/${mcVersion}-${forgeVersion}/forge-${mcVersion}-${forgeVersion}-installer.jar`;
 
 /**
  *
- * @param {*} mcVersion
- * @param {*} forgeVersion
+ * @param {string} mcVersion
+ * @param {string} forgeVersion
  * @returns
  */
 function downloadInstaller(mcVersion, forgeVersion) {
@@ -86,8 +92,8 @@ function runInstaller() {
 }
 
 /**
- *
- * @returns
+ * 
+ * @returns 
  */
 function modifyEula() {
     return new Promise((resolve, reject) => {
@@ -111,8 +117,9 @@ function modifyEula() {
 }
 
 /**
- *
- * @returns
+ * 
+ * @param {*} profile 
+ * @returns 
  */
 function modifyUserJvmArgs(profile) {
     return new Promise((resolve, reject) => {
@@ -124,7 +131,8 @@ function modifyUserJvmArgs(profile) {
                 logging.info('Updating user JVM args.');
                 logging.info('#'.repeat(process.stdout.columns));
 
-                let str = data.toString().replace('# -Xmx4G', `-Xmx${profile.start.jvm.memory}G`);
+                let str = data.toString()
+                    .replace('# -Xmx4G', `-Xmx${profile.start.jvm.memory}G`);
 
                 str += [
                     '\n-XX:+UnlockExperimentalVMOptions',

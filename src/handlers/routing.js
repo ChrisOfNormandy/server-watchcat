@@ -8,8 +8,8 @@ const { getAuthToken } = require('../encryption');
 
 /**
  *
- * @param {*} user
- * @param {*} res
+ * @param {string} user
+ * @param {import('express').Response} res
  */
 function goHome(user, res) {
     const session = getAuthToken()
@@ -30,8 +30,8 @@ function goHome(user, res) {
 
 /**
  *
- * @param {*} req
- * @param {*} res
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 function index(req, res) {
     logging.info('Request made to panel.');

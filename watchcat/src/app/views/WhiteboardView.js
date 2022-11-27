@@ -8,7 +8,7 @@ import { v4 } from 'uuid';
 import { getData } from '../helpers/net-handler';
 import socketHandler from '../helpers/socketHandler';
 
-import './styles/whiteboard-view.css';
+import './styles/whiteboard-view.scss';
 
 /**
  *

@@ -1,0 +1,10 @@
+.install-controls-container {
+    display: flex;
+    flex-direction: row;
+
+    .profile-select {
+        .input {
+            width: fit-content;
+        }
+    }
+}

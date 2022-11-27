@@ -8,7 +8,7 @@ import propertiesEditor from '../editors/properties';
 import tomlEditor from '../editors/toml';
 import { downloadFile } from '../helpers';
 
-import './styles/file-object.css';
+import './styles/file-object.scss';
 
 /**
  *

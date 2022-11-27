@@ -1,5 +1,6 @@
 const os = require('os');
 const fs = require('fs');
+const logging = require('./src/logging/logging');
 require('dotenv')
     .config({ path: __dirname + '/.env' });
 
@@ -18,9 +19,20 @@ const ex = {
     minecraft: process.env.SERVER_PATH,
     noValidate: process.env.NO_VALIDATE,
 
+    /**
+     * 
+     * @param {string} user 
+     * @returns 
+     */
     userPath(user) {
         return `${ex.users}/${user}.user`;
     },
+
+    /**
+     * 
+     * @param {string} user 
+     * @returns 
+     */
     userIsCached(user) {
         if (!fs.existsSync(ex.datapath + '/users.json'))
             fs.writeFileSync(ex.datapath + '/users.json', '{}', 'utf-8');
@@ -34,6 +46,12 @@ const ex = {
             });
         });
     },
+
+    /**
+     * 
+     * @param {string} id 
+     * @returns 
+     */
     getUserById(id) {
         if (!fs.existsSync(ex.datapath + '/users.json'))
             return id;
@@ -49,6 +67,12 @@ const ex = {
 
         return id;
     },
+
+    /**
+     * 
+     * @param {string} id 
+     * @returns 
+     */
     getUserDataById(id) {
         if (!fs.existsSync(ex.datapath + '/users.json'))
             return null;
@@ -64,8 +88,15 @@ const ex = {
 
         return null;
     },
+
+    /**
+     * 
+     * @param {string} user 
+     * @param {{id: string, username: string, discriminator: string, tag: *, avatarURL: string}} data 
+     * @returns 
+     */
     cacheUser(user, data) {
-        console.log('Cache user:', user, data);
+        logging.debug('Cache user:', user, data);
 
         if (!fs.existsSync(ex.datapath + '/users.json'))
             fs.writeFileSync(ex.datapath + '/users.json', '{}', 'utf-8');
@@ -107,30 +138,69 @@ const ex = {
             });
         });
     },
+
+    /**
+     * 
+     * @param {string} user 
+     * @returns 
+     */
     sessionPath(user) {
         return `${ex.users}/${user}.session`;
     },
-    minecraftPath() {
-        return `${os.homedir}/${ex.minecraft}`;
+
+    /**
+     * 
+     * @param {string} profile 
+     * @returns 
+     */
+    minecraftPath(profile) {
+        return `${os.homedir}/${ex.minecraft}/${profile}`;
     },
+
+    /**
+     * 
+     * @returns 
+     */
     loginPath() {
         return fs.existsSync(ex.web)
             ? ex.web + '/login.html'
             : __dirname + '/watchcat/build/login.html';
     },
+
+    /**
+     * 
+     * @param {string} file 
+     * @returns 
+     */
     logPath(file) {
         return ex.logPath + '/' + file;
     },
+
+    /**
+     * 
+     * @returns 
+     */
     webPath() {
         return fs.existsSync(ex.web)
             ? ex.web
             : __dirname + '/watchcat/build';
     },
+
+    /**
+     * 
+     * @returns 
+     */
     homePath() {
         return fs.existsSync(ex.web)
             ? ex.web + '/index.html'
             : __dirname + '/watchcat/build/index.html';
     },
+
+    /**
+     * 
+     * @param {string} file 
+     * @returns 
+     */
     staticFile(file) {
         return fs.existsSync(ex.web)
             ? ex.web + '/' + file

@@ -4,7 +4,7 @@ import { post } from '../../../helpers/net-handler';
 import modalManager from '../../../views/ModalManager';
 import { downloadFile } from '../helpers';
 
-import './styles/folder-object.css';
+import './styles/folder-object.scss';
 
 /**
  *

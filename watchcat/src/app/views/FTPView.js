@@ -2,7 +2,7 @@ import React from 'react';
 import FileManger from '../components/file-manager/FileManager';
 import socketHandler from '../helpers/socketHandler';
 
-import './styles/ftp-view.css';
+import './styles/ftp-view.scss';
 
 /**
  *

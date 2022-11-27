@@ -1,11 +1,14 @@
 import React from 'react';
 import toasts from '../helpers/toasts';
 import socketHandler from '../helpers/socketHandler';
-import ControlPanel from '../components/control-panel/ControlPanel';
 
 import { get, getData, post } from '../helpers/net-handler';
 
-import './styles/console-view.css';
+import './styles/console-view.scss';
+import Ribbon from '../components/ribbon/Ribbon';
+import InstallControls from '../components/control-panel/fragments/install-controls/InstallControls';
+
+import actions from './console-view/actions';
 
 const timestamp = /(\[(\d+:\d+:\d+)\])\s*/;
 const warn = /(\[([\w\s-]+\/WARN)\])\s*/;
@@ -150,13 +153,6 @@ function TerminalLine({ log }) {
     return lines.map(FormattedTerminalLine);
 }
 
-/**
- * @typedef Props
- * @property {*[]} logs
- *
- * @param {Props} param0
- * @returns
- */
 class Terminal extends React.Component {
     getHistory() {
         console.debug('Getting log history...');
@@ -191,6 +187,10 @@ class Terminal extends React.Component {
         this.setState(state);
     }
 
+    /**
+     *
+     * @param {*} e
+     */
     sendCommand(e) {
         e.preventDefault();
 
@@ -213,6 +213,10 @@ class Terminal extends React.Component {
             });
     }
 
+    /**
+     *
+     * @param {*} value
+     */
     updateScrollPos(value) {
         let state = this.state;
         state.scrollPos = value;
@@ -237,6 +241,10 @@ class Terminal extends React.Component {
         }
     }
 
+    /**
+     *
+     * @param {*} data
+     */
     pushLogToTerminal(data) {
         console.log('Data:', data);
 
@@ -290,6 +298,15 @@ class Terminal extends React.Component {
             <div
                 className='terminal-controls'
             >
+                <button
+                    className='btn primary'
+                    onClick={this.getHistory}
+                >
+                    <i
+                        className='icon bi bi-arrow-repeat'
+                    />
+                </button>
+
                 <button
                     className='btn primary'
                     onClick={this.clearLogs}
@@ -358,11 +375,7 @@ function ConsoleContainer() {
 export default class ConsoleView extends React.Component {
     refresh() {
         getData('/profiles/list')
-            .then((list) => {
-                let state = this.state;
-                state.profileList = list;
-                this.setState(state);
-            })
+            .then((list) => this.setState({ profileList: list }))
             .catch(console.error);
     }
 
@@ -380,10 +393,75 @@ export default class ConsoleView extends React.Component {
         return <div
             className='view console-view'
         >
-            <ControlPanel
-                profiles={this.getProfiles()}
-                refresh={this.refresh}
-            />
+            <div
+                className='console-header'
+            >
+                <Ribbon
+                    content={
+                        () => [
+                            {
+                                label: 'Server',
+                                content: [
+                                    {
+                                        label: 'Status',
+                                        onClick: actions.server.status
+                                    },
+                                    {
+                                        label: 'Start',
+                                        onClick: actions.server.start
+                                    },
+                                    {
+                                        label: 'Stop',
+                                        onClick: actions.server.stop
+                                    },
+                                    {
+                                        label: 'Restart',
+                                        onClick: actions.server.restart
+                                    },
+                                    {
+                                        label: 'Ping',
+                                        onClick: actions.server.ping
+                                    },
+                                    {
+                                        label: 'Terminate',
+                                        onClick: actions.server.terminate,
+                                        style: {
+                                            color: 'red'
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                label: 'Console',
+                                content: [
+                                    {
+                                        label: 'Reconnect',
+                                        onClick: actions.console.reconnect
+                                    },
+                                    {
+                                        label: 'Refresh',
+                                        onClick: console.debug
+                                    }
+                                ]
+                            },
+                            {
+                                label: 'World',
+                                content: [
+                                    {
+                                        label: 'Create Backup',
+                                        onClick: actions.world.backup
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                />
+
+                <InstallControls
+                    profiles={this.getProfiles()}
+                    refresh={this.refresh}
+                />
+            </div>
 
             <ConsoleContainer />
         </div>;

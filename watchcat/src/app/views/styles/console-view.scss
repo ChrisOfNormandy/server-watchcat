@@ -1,0 +1,19 @@
+.console-view {
+  position: relative;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+
+  flex-wrap: nowrap;
+
+  .console-header {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .console-container {
+      flex: auto;
+  }
+}
+
